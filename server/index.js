@@ -40,7 +40,7 @@ app.use('/api/admin', adminRoutes);
 
 // Serve static files in production
 if (isProduction) {
-    const staticPath = path.join(__dirname, '../httpdocs');
+    const staticPath = path.join(__dirname, 'public');
     app.use(express.static(staticPath));
     
     // Handle SPA routing - send all non-API requests to index.html
