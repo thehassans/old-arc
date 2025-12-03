@@ -1,61 +1,247 @@
 import React, { useEffect, useState } from 'react';
+import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
 import Hero from '../components/Hero';
 import ProductCard from '../components/ProductCard';
-import axios from 'axios';
+import { useTheme } from '../context/ThemeContext';
+import { Zap, Shield, Truck, Award, ArrowRight, Sparkles } from 'lucide-react';
 
 const Home = () => {
     const [featuredProducts, setFeaturedProducts] = useState([]);
     const [loading, setLoading] = useState(true);
+    const { isDark } = useTheme();
 
-    // Mock data for now since DB might be down
     const mockProducts = [
-        { id: 1, title: 'Retro Console X', description: 'The ultimate retro gaming experience.', price: 199.99, image_url: 'https://images.unsplash.com/photo-1486401899868-0e435ed85128?auto=format&fit=crop&q=80' },
-        { id: 2, title: 'Classic Controller', description: 'Authentic feel, modern precision.', price: 49.99, image_url: 'https://images.unsplash.com/photo-1592840496011-a68a4859036d?auto=format&fit=crop&q=80' },
-        { id: 3, title: 'Arcade Stick Pro', description: 'Dominate the leaderboards.', price: 129.99, image_url: 'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&q=80' },
-        { id: 4, title: 'Game Cartridge Set', description: 'Collection of 10 classic titles.', price: 89.99, image_url: 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&q=80' },
+        { id: 1, title: 'Retro Console X', description: 'The ultimate retro gaming experience with 5000+ games.', price: 159.99, category: 'Consoles', image_url: 'https://images.unsplash.com/photo-1606144042614-b2417e99c4e3?auto=format&fit=crop&w=600&q=80' },
+        { id: 2, title: 'Wireless Pro Controller', description: 'Ergonomic design with precision analogue sticks.', price: 44.99, category: 'Accessories', image_url: 'https://images.unsplash.com/photo-1600080972464-8e5f35f63d08?auto=format&fit=crop&w=600&q=80' },
+        { id: 3, title: 'Gaming Headset RGB', description: '7.1 surround sound with noise cancellation.', price: 79.99, category: 'Accessories', image_url: 'https://images.unsplash.com/photo-1599669454699-248893623440?auto=format&fit=crop&w=600&q=80' },
+        { id: 4, title: 'Controller Charging Dock', description: 'Dual charging station with LED indicators.', price: 24.99, category: 'Accessories', image_url: 'https://images.unsplash.com/photo-1595225476474-87563907a212?auto=format&fit=crop&w=600&q=80' },
+    ];
+
+    const features = [
+        { icon: Zap, title: 'Fast Shipping', desc: '2-3 day delivery', color: '#a855f7' },
+        { icon: Shield, title: '2 Year Warranty', desc: 'Full coverage', color: '#22d3ee' },
+        { icon: Truck, title: 'Free Returns', desc: '30-day policy', color: '#ec4899' },
+        { icon: Award, title: 'Authentic Only', desc: '100% genuine', color: '#f59e0b' },
     ];
 
     useEffect(() => {
-        // Simulate API call
         setTimeout(() => {
             setFeaturedProducts(mockProducts);
             setLoading(false);
-        }, 1000);
+        }, 800);
     }, []);
 
     return (
-        <div>
+        <div style={{ backgroundColor: isDark ? '#0a0a0f' : '#fafafa' }}>
             <Hero />
 
-            <section className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-                <div className="text-center mb-16">
-                    <h2 className="text-3xl md:text-4xl font-display font-bold mb-4">Featured <span className="text-primary">Collection</span></h2>
-                    <p className="text-gray-400 max-w-2xl mx-auto">Handpicked favorites from our premium inventory. Quality guaranteed.</p>
+            {/* Features Bar */}
+            <section 
+                className="py-8 relative overflow-hidden"
+                style={{ 
+                    backgroundColor: isDark ? '#12121a' : '#ffffff',
+                    borderTop: `1px solid ${isDark ? 'rgba(168,85,247,0.1)' : 'rgba(0,0,0,0.05)'}`,
+                    borderBottom: `1px solid ${isDark ? 'rgba(168,85,247,0.1)' : 'rgba(0,0,0,0.05)'}`
+                }}
+            >
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                        {features.map((feature, i) => (
+                            <motion.div
+                                key={i}
+                                initial={{ opacity: 0, y: 20 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                viewport={{ once: true }}
+                                transition={{ delay: i * 0.1 }}
+                                className="flex items-center gap-4 py-4"
+                            >
+                                <div 
+                                    className="w-12 h-12 rounded-xl flex items-center justify-center"
+                                    style={{
+                                        backgroundColor: `${feature.color}15`,
+                                    }}
+                                >
+                                    <feature.icon size={22} style={{ color: feature.color }} />
+                                </div>
+                                <div>
+                                    <div className="font-bold text-sm" style={{ color: isDark ? '#ffffff' : '#0a0a0f' }}>
+                                        {feature.title}
+                                    </div>
+                                    <div className="text-xs" style={{ color: isDark ? '#8b8b9e' : '#64748b' }}>
+                                        {feature.desc}
+                                    </div>
+                                </div>
+                            </motion.div>
+                        ))}
+                    </div>
                 </div>
+            </section>
+
+            {/* Featured Products */}
+            <section className="py-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+                <motion.div 
+                    className="text-center mb-16"
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                >
+                    <span 
+                        className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold mb-4"
+                        style={{
+                            backgroundColor: isDark ? 'rgba(168,85,247,0.1)' : 'rgba(124,58,237,0.1)',
+                            color: '#a855f7'
+                        }}
+                    >
+                        <Sparkles size={16} />
+                        Handpicked For You
+                    </span>
+                    <h2 
+                        className="text-4xl md:text-5xl font-display font-black mb-6"
+                        style={{ color: isDark ? '#ffffff' : '#0a0a0f' }}
+                    >
+                        Featured <span style={{
+                            background: 'linear-gradient(135deg, #a855f7, #22d3ee)',
+                            WebkitBackgroundClip: 'text',
+                            WebkitTextFillColor: 'transparent',
+                            backgroundClip: 'text'
+                        }}>Collection</span>
+                    </h2>
+                    <p 
+                        className="max-w-2xl mx-auto text-lg"
+                        style={{ color: isDark ? '#8b8b9e' : '#64748b' }}
+                    >
+                        Premium gaming gear selected by enthusiasts, for enthusiasts.
+                    </p>
+                </motion.div>
 
                 {loading ? (
                     <div className="flex justify-center items-center h-64">
-                        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+                        <motion.div
+                            animate={{ rotate: 360 }}
+                            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                            className="w-12 h-12 rounded-full border-2 border-t-transparent"
+                            style={{ borderColor: '#a855f7', borderTopColor: 'transparent' }}
+                        />
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-                        {featuredProducts.map(product => (
-                            <ProductCard key={product.id} product={product} />
+                        {featuredProducts.map((product, i) => (
+                            <motion.div
+                                key={product.id}
+                                initial={{ opacity: 0, y: 30 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                viewport={{ once: true }}
+                                transition={{ delay: i * 0.1 }}
+                            >
+                                <ProductCard product={product} />
+                            </motion.div>
                         ))}
                     </div>
                 )}
+
+                <motion.div 
+                    className="text-center mt-12"
+                    initial={{ opacity: 0 }}
+                    whileInView={{ opacity: 1 }}
+                    viewport={{ once: true }}
+                >
+                    <Link to="/shop" className="btn-secondary inline-flex items-center gap-2">
+                        View All Products
+                        <ArrowRight size={18} />
+                    </Link>
+                </motion.div>
             </section>
 
-            <section className="py-20 bg-dark-lighter/30 relative overflow-hidden">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-                    <div className="bg-gradient-to-r from-primary/20 to-secondary/20 rounded-3xl p-10 md:p-16 text-center border border-white/10 backdrop-blur-md">
-                        <h2 className="text-3xl md:text-4xl font-display font-bold mb-6">Join the <span className="text-secondary">Arcade Club</span></h2>
-                        <p className="text-gray-300 mb-8 max-w-2xl mx-auto">Get exclusive access to rare drops, member-only discounts, and early access to new arrivals.</p>
-                        <form className="max-w-md mx-auto flex gap-4">
-                            <input type="email" placeholder="Enter your email" className="input-field flex-grow" />
-                            <button type="submit" className="btn-primary whitespace-nowrap">Subscribe</button>
+            {/* Newsletter Section */}
+            <section className="py-24 relative overflow-hidden">
+                {/* Background Effects */}
+                <div 
+                    className="absolute inset-0"
+                    style={{
+                        background: isDark 
+                            ? 'linear-gradient(135deg, rgba(168,85,247,0.1) 0%, rgba(34,211,238,0.05) 50%, rgba(236,72,153,0.1) 100%)'
+                            : 'linear-gradient(135deg, rgba(124,58,237,0.08) 0%, rgba(8,145,178,0.05) 50%, rgba(219,39,119,0.08) 100%)'
+                    }}
+                />
+                <motion.div
+                    animate={{ 
+                        scale: [1, 1.2, 1],
+                        opacity: [0.3, 0.5, 0.3]
+                    }}
+                    transition={{ duration: 8, repeat: Infinity }}
+                    className="absolute top-1/2 left-1/4 -translate-y-1/2 w-96 h-96 rounded-full blur-3xl pointer-events-none"
+                    style={{ background: 'radial-gradient(circle, rgba(168,85,247,0.3) 0%, transparent 70%)' }}
+                />
+
+                <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+                    <motion.div
+                        initial={{ opacity: 0, y: 30 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        className="text-center rounded-3xl p-12 md:p-16"
+                        style={{
+                            backgroundColor: isDark ? 'rgba(18,18,26,0.8)' : 'rgba(255,255,255,0.9)',
+                            backdropFilter: 'blur(20px)',
+                            border: `1px solid ${isDark ? 'rgba(168,85,247,0.2)' : 'rgba(0,0,0,0.05)'}`,
+                            boxShadow: isDark 
+                                ? '0 25px 50px -12px rgba(0,0,0,0.5)' 
+                                : '0 25px 50px -12px rgba(0,0,0,0.1)'
+                        }}
+                    >
+                        <span 
+                            className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold mb-6"
+                            style={{
+                                backgroundColor: isDark ? 'rgba(34,211,238,0.1)' : 'rgba(8,145,178,0.1)',
+                                color: '#22d3ee'
+                            }}
+                        >
+                            <Zap size={16} />
+                            Exclusive Access
+                        </span>
+                        
+                        <h2 
+                            className="text-3xl md:text-4xl lg:text-5xl font-display font-black mb-6"
+                            style={{ color: isDark ? '#ffffff' : '#0a0a0f' }}
+                        >
+                            Join the <span style={{
+                                background: 'linear-gradient(135deg, #22d3ee, #a855f7)',
+                                WebkitBackgroundClip: 'text',
+                                WebkitTextFillColor: 'transparent',
+                                backgroundClip: 'text'
+                            }}>Arcade Club</span>
+                        </h2>
+                        
+                        <p 
+                            className="text-lg mb-10 max-w-xl mx-auto"
+                            style={{ color: isDark ? '#8b8b9e' : '#64748b' }}
+                        >
+                            Get exclusive drops, member-only discounts, and early access to the rarest gaming collectibles.
+                        </p>
+                        
+                        <form className="max-w-md mx-auto flex flex-col sm:flex-row gap-4">
+                            <input 
+                                type="email" 
+                                placeholder="Enter your email" 
+                                className="input-field flex-grow"
+                            />
+                            <motion.button 
+                                whileHover={{ scale: 1.02 }}
+                                whileTap={{ scale: 0.98 }}
+                                type="submit" 
+                                className="btn-primary whitespace-nowrap"
+                            >
+                                Join Now
+                            </motion.button>
                         </form>
-                    </div>
+                        
+                        <p 
+                            className="text-xs mt-6"
+                            style={{ color: isDark ? '#8b8b9e' : '#64748b' }}
+                        >
+                            By subscribing, you agree to our Privacy Policy. Unsubscribe anytime.
+                        </p>
+                    </motion.div>
                 </div>
             </section>
         </div>

@@ -2,22 +2,26 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
+import { useTheme } from './context/ThemeContext';
 
 import Home from './pages/Home';
-// const Home = () => <div className="pt-20 min-h-screen flex items-center justify-center"><h1>Home Page</h1></div>;
 import Shop from './pages/Shop';
 import ProductDetails from './pages/ProductDetails';
-// const Shop = () => <div className="pt-20 min-h-screen flex items-center justify-center"><h1>Shop Page</h1></div>;
-// const ProductDetails = () => <div className="pt-20 min-h-screen flex items-center justify-center"><h1>Product Details</h1></div>;
 import Cart from './pages/Cart';
 import Admin from './pages/Admin';
-// const Cart = () => <div className="pt-20 min-h-screen flex items-center justify-center"><h1>Cart Page</h1></div>;
-// const Admin = () => <div className="pt-20 min-h-screen flex items-center justify-center"><h1>Admin Panel</h1></div>;
 
 function App() {
+  const { isDark } = useTheme();
+
   return (
     <Router>
-      <div className="min-h-screen bg-dark text-white flex flex-col">
+      <div 
+        className="min-h-screen flex flex-col transition-all duration-500"
+        style={{ 
+          backgroundColor: isDark ? '#0a0a0f' : '#fafafa',
+          color: isDark ? '#ffffff' : '#0a0a0f'
+        }}
+      >
         <Navbar />
         <main className="flex-grow">
           <Routes>

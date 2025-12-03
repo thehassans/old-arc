@@ -6,15 +6,25 @@ const db = require('./config/db');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+const isProduction = process.env.NODE_ENV === 'production';
+
+// CORS Configuration
+const corsOptions = {
+    origin: isProduction 
+        ? process.env.CORS_ORIGIN || 'https://old-arcade.com'
+        : ['http://localhost:5173', 'http://localhost:3000'],
+    credentials: true,
+    optionsSuccessStatus: 200
+};
 
 // Middleware
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Routes
-app.get('/', (req, res) => {
-    res.send('Old Arcade API is running');
+// API Health Check
+app.get('/api/health', (req, res) => {
+    res.json({ status: 'OK', environment: process.env.NODE_ENV });
 });
 
 // Import Routes
@@ -28,12 +38,27 @@ app.use('/api/products', productRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/admin', adminRoutes);
 
+// Serve static files in production
+if (isProduction) {
+    const staticPath = path.join(__dirname, '../httpdocs');
+    app.use(express.static(staticPath));
+    
+    // Handle SPA routing - send all non-API requests to index.html
+    app.get('*', (req, res) => {
+        if (!req.path.startsWith('/api')) {
+            res.sendFile(path.join(staticPath, 'index.html'));
+        }
+    });
+}
+
 // Error Handling Middleware
 app.use((err, req, res, next) => {
     console.error(err.stack);
-    res.status(500).json({ message: 'Something went wrong!' });
+    res.status(500).json({ 
+        message: isProduction ? 'Something went wrong!' : err.message 
+    });
 });
 
 app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+    console.log(`Server running on port ${PORT} in ${process.env.NODE_ENV || 'development'} mode`);
 });

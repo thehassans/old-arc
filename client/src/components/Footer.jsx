@@ -1,53 +1,244 @@
 import React from 'react';
-import { Facebook, Twitter, Instagram, Youtube } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Facebook, Twitter, Instagram, Youtube, Gamepad2, Mail, MapPin, Phone } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { useTheme } from '../context/ThemeContext';
 
 const Footer = () => {
+    const { isDark } = useTheme();
+
+    const footerLinks = {
+        shop: [
+            { label: 'All Products', path: '/shop' },
+            { label: 'Consoles', path: '/consoles' },
+            { label: 'Games', path: '/games' },
+            { label: 'Accessories', path: '/shop?category=accessories' },
+        ],
+        support: [
+            { label: 'Contact Us', path: '/contact' },
+            { label: 'FAQs', path: '/faq' },
+            { label: 'Shipping & Returns', path: '/shipping' },
+            { label: 'Privacy Policy', path: '/privacy' },
+        ]
+    };
+
+    const socialLinks = [
+        { icon: Facebook, href: '#', label: 'Facebook' },
+        { icon: Twitter, href: '#', label: 'Twitter' },
+        { icon: Instagram, href: '#', label: 'Instagram' },
+        { icon: Youtube, href: '#', label: 'Youtube' },
+    ];
+
     return (
-        <footer className="bg-dark-lighter pt-16 pb-8 border-t border-white/10">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
-                    <div>
-                        <h2 className="text-2xl font-display font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent mb-4">
-                            OLD ARCADE
-                        </h2>
-                        <p className="text-gray-400 text-sm leading-relaxed">
-                            Your premium destination for retro and modern gaming. Experience the nostalgia with our curated collection.
+        <footer 
+            className="relative overflow-hidden"
+            style={{ 
+                backgroundColor: isDark ? '#0a0a0f' : '#fafafa',
+                borderTop: `1px solid ${isDark ? 'rgba(168,85,247,0.1)' : 'rgba(0,0,0,0.05)'}`
+            }}
+        >
+            {/* Background Glow */}
+            <div 
+                className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] pointer-events-none"
+                style={{
+                    background: 'radial-gradient(ellipse at center, rgba(168,85,247,0.08) 0%, transparent 70%)'
+                }}
+            />
+
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+                {/* Main Footer Content */}
+                <div className="py-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
+                    {/* Brand Section */}
+                    <div className="lg:col-span-1">
+                        <Link to="/" className="flex items-center gap-3 mb-6">
+                            <div 
+                                className="w-12 h-12 rounded-xl flex items-center justify-center"
+                                style={{
+                                    background: 'linear-gradient(135deg, #a855f7, #22d3ee)',
+                                    boxShadow: '0 4px 15px rgba(168,85,247,0.3)'
+                                }}
+                            >
+                                <Gamepad2 size={24} color="white" />
+                            </div>
+                            <span className="text-2xl font-display font-black" style={{ 
+                                background: 'linear-gradient(135deg, #a855f7, #22d3ee)',
+                                WebkitBackgroundClip: 'text',
+                                WebkitTextFillColor: 'transparent',
+                                backgroundClip: 'text'
+                            }}>
+                                OLD ARCADE
+                            </span>
+                        </Link>
+                        <p 
+                            className="text-sm leading-relaxed mb-6"
+                            style={{ color: isDark ? '#8b8b9e' : '#64748b' }}
+                        >
+                            Your premium destination for retro gaming excellence. Discover legendary consoles, 
+                            timeless games, and elite accessories.
                         </p>
-                    </div>
-
-                    <div>
-                        <h3 className="text-white font-bold mb-4">Shop</h3>
-                        <ul className="space-y-2 text-gray-400 text-sm">
-                            <li><a href="#" className="hover:text-primary transition-colors">All Products</a></li>
-                            <li><a href="#" className="hover:text-primary transition-colors">Consoles</a></li>
-                            <li><a href="#" className="hover:text-primary transition-colors">Games</a></li>
-                            <li><a href="#" className="hover:text-primary transition-colors">Accessories</a></li>
-                        </ul>
-                    </div>
-
-                    <div>
-                        <h3 className="text-white font-bold mb-4">Support</h3>
-                        <ul className="space-y-2 text-gray-400 text-sm">
-                            <li><a href="#" className="hover:text-primary transition-colors">Contact Us</a></li>
-                            <li><a href="#" className="hover:text-primary transition-colors">FAQs</a></li>
-                            <li><a href="#" className="hover:text-primary transition-colors">Shipping & Returns</a></li>
-                            <li><a href="#" className="hover:text-primary transition-colors">Privacy Policy</a></li>
-                        </ul>
-                    </div>
-
-                    <div>
-                        <h3 className="text-white font-bold mb-4">Connect</h3>
-                        <div className="flex space-x-4">
-                            <a href="#" className="text-gray-400 hover:text-primary transition-colors"><Facebook size={20} /></a>
-                            <a href="#" className="text-gray-400 hover:text-primary transition-colors"><Twitter size={20} /></a>
-                            <a href="#" className="text-gray-400 hover:text-primary transition-colors"><Instagram size={20} /></a>
-                            <a href="#" className="text-gray-400 hover:text-primary transition-colors"><Youtube size={20} /></a>
+                        
+                        {/* Social Links */}
+                        <div className="flex gap-3">
+                            {socialLinks.map((social, i) => (
+                                <motion.a
+                                    key={i}
+                                    href={social.href}
+                                    whileHover={{ scale: 1.1, y: -2 }}
+                                    whileTap={{ scale: 0.95 }}
+                                    className="w-10 h-10 rounded-xl flex items-center justify-center transition-all"
+                                    style={{
+                                        backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)',
+                                        color: isDark ? '#8b8b9e' : '#64748b'
+                                    }}
+                                    aria-label={social.label}
+                                >
+                                    <social.icon size={18} />
+                                </motion.a>
+                            ))}
                         </div>
+                    </div>
+
+                    {/* Shop Links */}
+                    <div>
+                        <h3 
+                            className="font-bold text-lg mb-6"
+                            style={{ color: isDark ? '#ffffff' : '#0a0a0f' }}
+                        >
+                            Shop
+                        </h3>
+                        <ul className="space-y-3">
+                            {footerLinks.shop.map((link, i) => (
+                                <li key={i}>
+                                    <Link 
+                                        to={link.path}
+                                        className="text-sm transition-colors hover:translate-x-1 inline-block"
+                                        style={{ color: isDark ? '#8b8b9e' : '#64748b' }}
+                                        onMouseEnter={(e) => e.target.style.color = '#a855f7'}
+                                        onMouseLeave={(e) => e.target.style.color = isDark ? '#8b8b9e' : '#64748b'}
+                                    >
+                                        {link.label}
+                                    </Link>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+
+                    {/* Support Links */}
+                    <div>
+                        <h3 
+                            className="font-bold text-lg mb-6"
+                            style={{ color: isDark ? '#ffffff' : '#0a0a0f' }}
+                        >
+                            Support
+                        </h3>
+                        <ul className="space-y-3">
+                            {footerLinks.support.map((link, i) => (
+                                <li key={i}>
+                                    <Link 
+                                        to={link.path}
+                                        className="text-sm transition-colors"
+                                        style={{ color: isDark ? '#8b8b9e' : '#64748b' }}
+                                        onMouseEnter={(e) => e.target.style.color = '#a855f7'}
+                                        onMouseLeave={(e) => e.target.style.color = isDark ? '#8b8b9e' : '#64748b'}
+                                    >
+                                        {link.label}
+                                    </Link>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+
+                    {/* Contact Info */}
+                    <div>
+                        <h3 
+                            className="font-bold text-lg mb-6"
+                            style={{ color: isDark ? '#ffffff' : '#0a0a0f' }}
+                        >
+                            Contact
+                        </h3>
+                        <ul className="space-y-4">
+                            <li className="flex items-center gap-3">
+                                <div 
+                                    className="w-10 h-10 rounded-xl flex items-center justify-center"
+                                    style={{
+                                        backgroundColor: isDark ? 'rgba(168,85,247,0.1)' : 'rgba(124,58,237,0.1)'
+                                    }}
+                                >
+                                    <Mail size={18} style={{ color: '#a855f7' }} />
+                                </div>
+                                <span className="text-sm" style={{ color: isDark ? '#8b8b9e' : '#64748b' }}>
+                                    hello@oldarcade.com
+                                </span>
+                            </li>
+                            <li className="flex items-center gap-3">
+                                <div 
+                                    className="w-10 h-10 rounded-xl flex items-center justify-center"
+                                    style={{
+                                        backgroundColor: isDark ? 'rgba(34,211,238,0.1)' : 'rgba(8,145,178,0.1)'
+                                    }}
+                                >
+                                    <Phone size={18} style={{ color: '#22d3ee' }} />
+                                </div>
+                                <span className="text-sm" style={{ color: isDark ? '#8b8b9e' : '#64748b' }}>
+                                    +44 20 7946 0958
+                                </span>
+                            </li>
+                            <li className="flex items-center gap-3">
+                                <div 
+                                    className="w-10 h-10 rounded-xl flex items-center justify-center"
+                                    style={{
+                                        backgroundColor: isDark ? 'rgba(236,72,153,0.1)' : 'rgba(219,39,119,0.1)'
+                                    }}
+                                >
+                                    <MapPin size={18} style={{ color: '#ec4899' }} />
+                                </div>
+                                <span className="text-sm" style={{ color: isDark ? '#8b8b9e' : '#64748b' }}>
+                                    London, UK
+                                </span>
+                            </li>
+                        </ul>
                     </div>
                 </div>
 
-                <div className="border-t border-white/10 pt-8 text-center text-gray-500 text-sm">
-                    <p>&copy; {new Date().getFullYear()} Old Arcade. All rights reserved.</p>
+                {/* Bottom Bar */}
+                <div 
+                    className="py-6 flex flex-col sm:flex-row items-center justify-between gap-4"
+                    style={{ 
+                        borderTop: `1px solid ${isDark ? 'rgba(168,85,247,0.1)' : 'rgba(0,0,0,0.05)'}` 
+                    }}
+                >
+                    <p className="text-sm" style={{ color: isDark ? '#8b8b9e' : '#64748b' }}>
+                        © {new Date().getFullYear()} Old Arcade. All rights reserved.
+                    </p>
+                    <div className="flex items-center gap-6">
+                        <Link 
+                            to="/terms" 
+                            className="text-sm transition-colors"
+                            style={{ color: isDark ? '#8b8b9e' : '#64748b' }}
+                            onMouseEnter={(e) => e.target.style.color = '#a855f7'}
+                            onMouseLeave={(e) => e.target.style.color = isDark ? '#8b8b9e' : '#64748b'}
+                        >
+                            Terms
+                        </Link>
+                        <Link 
+                            to="/privacy" 
+                            className="text-sm transition-colors"
+                            style={{ color: isDark ? '#8b8b9e' : '#64748b' }}
+                            onMouseEnter={(e) => e.target.style.color = '#a855f7'}
+                            onMouseLeave={(e) => e.target.style.color = isDark ? '#8b8b9e' : '#64748b'}
+                        >
+                            Privacy
+                        </Link>
+                        <Link 
+                            to="/cookies" 
+                            className="text-sm transition-colors"
+                            style={{ color: isDark ? '#8b8b9e' : '#64748b' }}
+                            onMouseEnter={(e) => e.target.style.color = '#a855f7'}
+                            onMouseLeave={(e) => e.target.style.color = isDark ? '#8b8b9e' : '#64748b'}
+                        >
+                            Cookies
+                        </Link>
+                    </div>
                 </div>
             </div>
         </footer>
