@@ -11,7 +11,7 @@ const isProduction = process.env.NODE_ENV === 'production';
 // CORS Configuration
 const corsOptions = {
     origin: isProduction 
-        ? process.env.CORS_ORIGIN || 'https://old-arcade.com'
+        ? process.env.CORS_ORIGIN
         : ['http://localhost:5173', 'http://localhost:3000'],
     credentials: true,
     optionsSuccessStatus: 200
