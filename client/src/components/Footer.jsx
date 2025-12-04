@@ -180,7 +180,7 @@ const Footer = () => {
                                     <Phone size={18} style={{ color: '#22d3ee' }} />
                                 </div>
                                 <span className="text-sm" style={{ color: isDark ? '#8b8b9e' : '#64748b' }}>
-                                    +44 20 7946 0958
+                                    +44 7782 260144
                                 </span>
                             </li>
                             <li className="flex items-center gap-3">

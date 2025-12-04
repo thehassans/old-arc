@@ -10,6 +10,7 @@ import Consoles from './pages/Consoles';
 import Games from './pages/Games';
 import ProductDetails from './pages/ProductDetails';
 import Cart from './pages/Cart';
+import Login from './pages/Login';
 import Admin from './pages/Admin';
 
 function App() {
@@ -33,6 +34,7 @@ function App() {
             <Route path="/games" element={<Games />} />
             <Route path="/product/:id" element={<ProductDetails />} />
             <Route path="/cart" element={<Cart />} />
+            <Route path="/login" element={<Login />} />
             <Route path="/admin/*" element={<Admin />} />
           </Routes>
         </main>
