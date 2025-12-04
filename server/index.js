@@ -5,71 +5,45 @@ const path = require('path');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
-const isProduction = process.env.NODE_ENV === 'production';
 
-// Database connection (optional - won't crash if fails)
-let db;
-try {
-    db = require('./config/db');
-} catch (err) {
-    console.error('Database connection error:', err.message);
-}
-
-// CORS Configuration
-const corsOptions = {
-    origin: isProduction 
-        ? process.env.CORS_ORIGIN
-        : ['http://localhost:5173', 'http://localhost:3000'],
-    credentials: true,
-    optionsSuccessStatus: 200
-};
-
-// Middleware
-app.use(cors(corsOptions));
+// CORS - allow all for simplicity
+app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Serve static files FIRST
+const staticPath = path.join(__dirname, 'public');
+app.use(express.static(staticPath));
+
 // API Health Check
 app.get('/api/health', (req, res) => {
-    res.json({ status: 'OK', environment: process.env.NODE_ENV });
+    res.json({ status: 'OK', timestamp: new Date().toISOString() });
 });
 
-// Import Routes (with error handling)
-try {
-    const authRoutes = require('./routes/auth');
-    const productRoutes = require('./routes/products');
-    const orderRoutes = require('./routes/orders');
-    const adminRoutes = require('./routes/admin');
+// Mock API endpoints (no database required)
+app.get('/api/products', (req, res) => {
+    res.json([
+        { id: 1, title: 'Retro Console X', price: 159.99, image_url: 'https://images.unsplash.com/photo-1606144042614-b2417e99c4e3?auto=format&fit=crop&w=600&q=80' },
+        { id: 2, title: 'Classic Controller', price: 34.99, image_url: 'https://images.unsplash.com/photo-1592840496694-26d035b52b48?auto=format&fit=crop&w=600&q=80' },
+    ]);
+});
 
-    app.use('/api/auth', authRoutes);
-    app.use('/api/products', productRoutes);
-    app.use('/api/orders', orderRoutes);
-    app.use('/api/admin', adminRoutes);
-} catch (err) {
-    console.error('Routes loading error:', err.message);
-}
+app.get('/api/admin/stats', (req, res) => {
+    res.json({ totalOrders: 124, totalRevenue: 15490.50, totalUsers: 850, totalQueries: 12 });
+});
 
-// Serve static files in production
-if (isProduction) {
-    const staticPath = path.join(__dirname, 'public');
-    app.use(express.static(staticPath));
-    
-    // Handle SPA routing - send all non-API requests to index.html
-    app.get('*', (req, res) => {
-        if (!req.path.startsWith('/api')) {
-            res.sendFile(path.join(staticPath, 'index.html'));
-        }
-    });
-}
+// SPA Fallback - serve index.html for all other routes
+app.get('*', (req, res) => {
+    res.sendFile(path.join(staticPath, 'index.html'));
+});
 
-// Error Handling Middleware
+// Error handler
 app.use((err, req, res, next) => {
-    console.error(err.stack);
-    res.status(500).json({ 
-        message: isProduction ? 'Something went wrong!' : err.message 
-    });
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
 });
 
-app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT} in ${process.env.NODE_ENV || 'development'} mode`);
+// Start server
+app.listen(PORT, '0.0.0.0', () => {
+    console.log(`Server running on port ${PORT}`);
 });
