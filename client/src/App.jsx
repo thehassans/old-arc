@@ -12,6 +12,10 @@ import ProductDetails from './pages/ProductDetails';
 import Cart from './pages/Cart';
 import Login from './pages/Login';
 import Admin from './pages/Admin';
+import Contact from './pages/Contact';
+import FAQ from './pages/FAQ';
+import Shipping from './pages/Shipping';
+import Privacy from './pages/Privacy';
 
 function App() {
   const { isDark } = useTheme();
@@ -36,6 +40,10 @@ function App() {
             <Route path="/cart" element={<Cart />} />
             <Route path="/login" element={<Login />} />
             <Route path="/admin/*" element={<Admin />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="/faq" element={<FAQ />} />
+            <Route path="/shipping" element={<Shipping />} />
+            <Route path="/privacy" element={<Privacy />} />
           </Routes>
         </main>
         <Footer />

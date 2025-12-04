@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { ShoppingCart, Heart, Check, Eye } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { ShoppingCart, Heart, Check } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useCart } from '../context/CartContext';
 import { useTheme } from '../context/ThemeContext';
@@ -10,16 +10,22 @@ const ProductCard = ({ product }) => {
     const { isDark } = useTheme();
     const [added, setAdded] = useState(false);
     const [liked, setLiked] = useState(false);
+    const navigate = useNavigate();
 
     const handleAddToCart = (e) => {
-        e.preventDefault();
+        e.stopPropagation();
         addToCart(product);
         setAdded(true);
         setTimeout(() => setAdded(false), 2000);
     };
 
+    const handleCardClick = () => {
+        navigate(`/product/${product.id}`);
+    };
+
     return (
         <motion.div
+            onClick={handleCardClick}
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -27,6 +33,7 @@ const ProductCard = ({ product }) => {
             transition={{ duration: 0.4, ease: "easeOut" }}
             className="group relative rounded-2xl overflow-hidden"
             style={{
+                cursor: 'pointer',
                 backgroundColor: isDark ? '#12121a' : '#ffffff',
                 border: `1px solid ${isDark ? 'rgba(168,85,247,0.1)' : 'rgba(0,0,0,0.06)'}`,
                 boxShadow: isDark ? 'none' : '0 4px 20px rgba(0,0,0,0.06)'
@@ -108,9 +115,9 @@ const ProductCard = ({ product }) => {
 
             {/* Content */}
             <div className="p-5">
-                <div className="flex items-start justify-between gap-3 mb-2">
+                <div className="flex items-start justify-between gap-3">
                     <h3 
-                        className="font-bold text-lg leading-tight line-clamp-1"
+                        className="font-bold text-lg leading-tight line-clamp-2"
                         style={{ color: isDark ? '#ffffff' : '#0a0a0f' }}
                     >
                         {product.title}
@@ -127,29 +134,6 @@ const ProductCard = ({ product }) => {
                         £{product.price}
                     </div>
                 </div>
-                
-                <p 
-                    className="text-sm line-clamp-2 mb-4 leading-relaxed"
-                    style={{ color: isDark ? '#8b8b9e' : '#64748b' }}
-                >
-                    {product.description}
-                </p>
-
-                <Link 
-                    to={`/product/${product.id}`}
-                    className="inline-flex items-center gap-2 text-sm font-semibold transition-all group/link"
-                    style={{ color: '#a855f7' }}
-                >
-                    <Eye size={16} />
-                    View Details
-                    <motion.span
-                        className="inline-block"
-                        initial={{ x: 0 }}
-                        whileHover={{ x: 4 }}
-                    >
-                        →
-                    </motion.span>
-                </Link>
             </div>
 
             {/* Bottom Gradient Line */}
