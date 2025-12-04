@@ -167,7 +167,7 @@ const Footer = () => {
                                     <Mail size={18} style={{ color: '#a855f7' }} />
                                 </div>
                                 <span className="text-sm" style={{ color: isDark ? '#8b8b9e' : '#64748b' }}>
-                                    hello@oldarcade.com
+                                    hello@old-arcade.com
                                 </span>
                             </li>
                             <li className="flex items-center gap-3">
@@ -207,9 +207,21 @@ const Footer = () => {
                         borderTop: `1px solid ${isDark ? 'rgba(168,85,247,0.1)' : 'rgba(0,0,0,0.05)'}` 
                     }}
                 >
-                    <p className="text-sm" style={{ color: isDark ? '#8b8b9e' : '#64748b' }}>
-                        © {new Date().getFullYear()} Old Arcade. All rights reserved.
-                    </p>
+                    <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4">
+                        <p className="text-sm" style={{ color: isDark ? '#8b8b9e' : '#64748b' }}>
+                            © {new Date().getFullYear()} Old Arcade. All rights reserved.
+                        </p>
+                        <span className="hidden sm:inline" style={{ color: isDark ? '#8b8b9e' : '#64748b' }}>•</span>
+                        <a 
+                            href="https://vitalblaze.com" 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-sm font-medium transition-colors"
+                            style={{ color: '#a855f7' }}
+                        >
+                            Powered by VitalBlaze
+                        </a>
+                    </div>
                     <div className="flex items-center gap-6">
                         <Link 
                             to="/terms" 

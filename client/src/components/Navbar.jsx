@@ -117,15 +117,15 @@ const Navbar = () => {
                             className="p-2.5 rounded-xl transition-all"
                             style={{
                                 backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)',
-                                color: isDark ? '#fbbf24' : '#7c3aed'
+                                color: isDark ? '#fbbf24' : '#f59e0b'
                             }}
                         >
                             <motion.div
                                 initial={false}
-                                animate={{ rotate: isDark ? 0 : 180 }}
-                                transition={{ duration: 0.3 }}
+                                animate={{ rotate: isDark ? 0 : 360 }}
+                                transition={{ duration: 0.5 }}
                             >
-                                {isDark ? <Sun size={18} /> : <Moon size={18} />}
+                                {isDark ? <Moon size={18} /> : <Sun size={18} />}
                             </motion.div>
                         </motion.button>
 
@@ -174,10 +174,10 @@ const Navbar = () => {
                             className="p-2.5 rounded-xl"
                             style={{
                                 backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)',
-                                color: isDark ? '#fbbf24' : '#7c3aed'
+                                color: isDark ? '#fbbf24' : '#f59e0b'
                             }}
                         >
-                            {isDark ? <Sun size={18} /> : <Moon size={18} />}
+                            {isDark ? <Moon size={18} /> : <Sun size={18} />}
                         </motion.button>
                         <motion.button
                             whileTap={{ scale: 0.95 }}
