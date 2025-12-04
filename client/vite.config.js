@@ -7,20 +7,11 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     sourcemap: false,
-    minify: 'terser',
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          vendor: ['react', 'react-dom', 'react-router-dom'],
-          animations: ['framer-motion'],
-        }
-      }
-    }
   },
   server: {
     proxy: {
       '/api': {
-        target: process.env.VITE_API_URL || 'http://localhost:5000',
+        target: 'http://localhost:5000',
         changeOrigin: true,
       }
     }
