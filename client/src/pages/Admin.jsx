@@ -82,14 +82,17 @@ const Admin = () => {
     };
 
     return (
-        <div className="pt-20 min-h-screen flex" style={{ backgroundColor: isDark ? '#0a0a0f' : '#f1f5f9' }}>
+        <div className="min-h-screen flex" style={{ backgroundColor: isDark ? '#0a0a0f' : '#f1f5f9' }}>
             {/* Sidebar */}
             <div className="w-64 hidden md:flex flex-col" style={{ 
                 backgroundColor: isDark ? '#12121a' : '#ffffff',
                 borderRight: `1px solid ${isDark ? 'rgba(168,85,247,0.1)' : 'rgba(0,0,0,0.1)'}` 
             }}>
-                <div className="p-6">
-                    <h2 className="text-xl font-bold" style={{ color: isDark ? '#ffffff' : '#0a0a0f' }}>Admin Panel</h2>
+                <div className="p-6 flex items-center gap-3" style={{ borderBottom: `1px solid ${isDark ? 'rgba(168,85,247,0.1)' : 'rgba(0,0,0,0.1)'}` }}>
+                    <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #a855f7, #22d3ee)' }}>
+                        <LayoutDashboard size={20} color="white" />
+                    </div>
+                    <h2 className="text-lg font-bold" style={{ color: isDark ? '#ffffff' : '#0a0a0f' }}>Admin Panel</h2>
                 </div>
                 <nav className="flex-grow px-4 space-y-2">
                     {[
@@ -117,9 +120,14 @@ const Admin = () => {
             </div>
 
             {/* Mobile Header */}
-            <div className="md:hidden fixed top-20 left-0 right-0 z-40 p-4" style={{ backgroundColor: isDark ? '#12121a' : '#ffffff', borderBottom: `1px solid ${isDark ? 'rgba(168,85,247,0.1)' : 'rgba(0,0,0,0.1)'}` }}>
+            <div className="md:hidden fixed top-0 left-0 right-0 z-40 p-4" style={{ backgroundColor: isDark ? '#12121a' : '#ffffff', borderBottom: `1px solid ${isDark ? 'rgba(168,85,247,0.1)' : 'rgba(0,0,0,0.1)'}` }}>
                 <div className="flex items-center justify-between">
-                    <h2 className="font-bold" style={{ color: isDark ? '#ffffff' : '#0a0a0f' }}>Admin Panel</h2>
+                    <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #a855f7, #22d3ee)' }}>
+                            <LayoutDashboard size={16} color="white" />
+                        </div>
+                        <h2 className="font-bold" style={{ color: isDark ? '#ffffff' : '#0a0a0f' }}>Admin Panel</h2>
+                    </div>
                     <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} style={{ color: isDark ? '#ffffff' : '#0a0a0f' }}>
                         {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
                     </button>
@@ -150,7 +158,7 @@ const Admin = () => {
             </div>
 
             {/* Main Content */}
-            <div className="flex-grow p-8 overflow-y-auto">
+            <div className="flex-grow p-8 overflow-y-auto md:pt-8 pt-20">
                 {activeTab === 'dashboard' && (
                     <div className="space-y-8">
                         <h1 className="text-3xl font-bold mb-8" style={{ color: isDark ? '#ffffff' : '#0a0a0f' }}>Dashboard Overview</h1>
