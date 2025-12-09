@@ -16,7 +16,7 @@ const Admin = () => {
     const [orders, setOrders] = useState([]);
     const [ordersLoading, setOrdersLoading] = useState(false);
     const [editingOrder, setEditingOrder] = useState(null);
-    const [editForm, setEditForm] = useState({ status: '', scheduled_date: '', scheduled_time: '' });
+    const [editForm, setEditForm] = useState({ status: '', scheduled_date: '', scheduled_time: '', order_date: '' });
 
     // Check authentication
     useEffect(() => {
@@ -50,7 +50,8 @@ const Admin = () => {
         setEditForm({
             status: order.status,
             scheduled_date: order.scheduled_date || '',
-            scheduled_time: order.scheduled_time || ''
+            scheduled_time: order.scheduled_time || '',
+            order_date: order.created_at ? order.created_at.split('T')[0] : ''
         });
     };
 
@@ -66,7 +67,7 @@ const Admin = () => {
 
     const handleCancelEdit = () => {
         setEditingOrder(null);
-        setEditForm({ status: '', scheduled_date: '', scheduled_time: '' });
+        setEditForm({ status: '', scheduled_date: '', scheduled_time: '', order_date: '' });
     };
 
     // Settings state
@@ -401,8 +402,20 @@ const Admin = () => {
                                                             </div>
                                                         )}
                                                     </td>
-                                                    <td className="p-4" style={{ color: isDark ? '#8b8b9e' : '#64748b' }}>
-                                                        {new Date(order.created_at).toLocaleDateString()}
+                                                    <td className="p-4">
+                                                        {editingOrder === order.id ? (
+                                                            <input
+                                                                type="date"
+                                                                value={editForm.order_date}
+                                                                onChange={(e) => setEditForm({...editForm, order_date: e.target.value})}
+                                                                className="px-2 py-1 rounded text-sm"
+                                                                style={inputStyle}
+                                                            />
+                                                        ) : (
+                                                            <span style={{ color: isDark ? '#8b8b9e' : '#64748b' }}>
+                                                                {new Date(order.created_at).toLocaleDateString()}
+                                                            </span>
+                                                        )}
                                                     </td>
                                                     <td className="p-4">
                                                         {editingOrder === order.id ? (

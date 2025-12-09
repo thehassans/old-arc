@@ -206,11 +206,11 @@ router.get('/orders', (req, res) => {
     res.json(orders.sort((a, b) => new Date(b.created_at) - new Date(a.created_at)));
 });
 
-// Update order (admin - change status, date, time)
+// Update order (admin - change status, date, time, order date)
 router.put('/orders/:orderId', (req, res) => {
     try {
         const { orderId } = req.params;
-        const { status, scheduled_date, scheduled_time } = req.body;
+        const { status, scheduled_date, scheduled_time, order_date } = req.body;
 
         const orderIndex = orders.findIndex(o => o.id === parseInt(orderId));
         if (orderIndex === -1) {
@@ -220,6 +220,7 @@ router.put('/orders/:orderId', (req, res) => {
         if (status) orders[orderIndex].status = status;
         if (scheduled_date !== undefined) orders[orderIndex].scheduled_date = scheduled_date;
         if (scheduled_time !== undefined) orders[orderIndex].scheduled_time = scheduled_time;
+        if (order_date) orders[orderIndex].created_at = new Date(order_date).toISOString();
         orders[orderIndex].updated_at = new Date().toISOString();
 
         res.json({ success: true, order: orders[orderIndex] });
