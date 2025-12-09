@@ -5,6 +5,19 @@ const router = express.Router();
 let orders = [];
 let orderIdCounter = 1;
 
+// In-memory products store with default products
+let products = [
+    { id: 1, title: 'Retro Console X', description: 'The ultimate retro gaming experience with 5000+ games.', price: 159.99, category: 'Consoles', image_url: 'https://images.unsplash.com/photo-1606144042614-b2417e99c4e3?auto=format&fit=crop&w=600&q=80', stock: 50, created_at: new Date().toISOString() },
+    { id: 2, title: 'Wireless Pro Controller', description: 'Ergonomic design with precision analogue sticks.', price: 44.99, category: 'Accessories', image_url: 'https://images.unsplash.com/photo-1600080972464-8e5f35f63d08?auto=format&fit=crop&w=600&q=80', stock: 100, created_at: new Date().toISOString() },
+    { id: 3, title: 'Arcade Fighting Stick', description: 'Tournament-grade arcade stick with Sanwa buttons.', price: 109.99, category: 'Accessories', image_url: 'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=600&q=80', stock: 30, created_at: new Date().toISOString() },
+    { id: 4, title: 'Classic Game Bundle', description: 'Collection of 10 retro classic titles.', price: 69.99, category: 'Games', image_url: 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=600&q=80', stock: 200, created_at: new Date().toISOString() },
+    { id: 5, title: 'Handheld Retro Console', description: 'Portable gaming with 3.5" screen.', price: 124.99, category: 'Consoles', image_url: 'https://images.unsplash.com/photo-1531525645387-7f14be1bdbbd?auto=format&fit=crop&w=600&q=80', stock: 75, created_at: new Date().toISOString() },
+    { id: 6, title: 'Arcade Neon Sign', description: 'LED neon sign to light up your gaming space.', price: 64.99, category: 'Merch', image_url: 'https://images.unsplash.com/photo-1563207153-f403bf289096?auto=format&fit=crop&w=600&q=80', stock: 40, created_at: new Date().toISOString() },
+    { id: 7, title: 'Gaming Headset RGB', description: '7.1 surround sound with noise cancellation.', price: 79.99, category: 'Accessories', image_url: 'https://images.unsplash.com/photo-1599669454699-248893623440?auto=format&fit=crop&w=600&q=80', stock: 60, created_at: new Date().toISOString() },
+    { id: 8, title: 'Controller Charging Dock', description: 'Dual charging station with LED indicators.', price: 24.99, category: 'Accessories', image_url: 'https://images.unsplash.com/photo-1595225476474-87563907a212?auto=format&fit=crop&w=600&q=80', stock: 150, created_at: new Date().toISOString() },
+];
+let productIdCounter = 9;
+
 // Initialize Stripe only if key is provided
 let stripe = null;
 if (process.env.STRIPE_SECRET_KEY) {
@@ -290,6 +303,93 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
     }
 
     res.json({ received: true });
+});
+
+// ==================== PRODUCTS API ====================
+
+// Get all products
+router.get('/products', (req, res) => {
+    res.json(products);
+});
+
+// Get single product
+router.get('/products/:id', (req, res) => {
+    const product = products.find(p => p.id === parseInt(req.params.id));
+    if (!product) {
+        return res.status(404).json({ error: 'Product not found' });
+    }
+    res.json(product);
+});
+
+// Create product (admin)
+router.post('/products', (req, res) => {
+    try {
+        const { title, description, price, category, image_url, stock } = req.body;
+        
+        if (!title || !price) {
+            return res.status(400).json({ error: 'Title and price are required' });
+        }
+
+        const product = {
+            id: productIdCounter++,
+            title,
+            description: description || '',
+            price: parseFloat(price),
+            category: category || 'Uncategorized',
+            image_url: image_url || '',
+            stock: parseInt(stock) || 0,
+            created_at: new Date().toISOString()
+        };
+
+        products.push(product);
+        res.status(201).json({ success: true, product });
+    } catch (error) {
+        console.error('Create product error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Update product (admin)
+router.put('/products/:id', (req, res) => {
+    try {
+        const { id } = req.params;
+        const { title, description, price, category, image_url, stock } = req.body;
+
+        const productIndex = products.findIndex(p => p.id === parseInt(id));
+        if (productIndex === -1) {
+            return res.status(404).json({ error: 'Product not found' });
+        }
+
+        if (title) products[productIndex].title = title;
+        if (description !== undefined) products[productIndex].description = description;
+        if (price) products[productIndex].price = parseFloat(price);
+        if (category) products[productIndex].category = category;
+        if (image_url !== undefined) products[productIndex].image_url = image_url;
+        if (stock !== undefined) products[productIndex].stock = parseInt(stock);
+
+        res.json({ success: true, product: products[productIndex] });
+    } catch (error) {
+        console.error('Update product error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Delete product (admin)
+router.delete('/products/:id', (req, res) => {
+    try {
+        const { id } = req.params;
+        const productIndex = products.findIndex(p => p.id === parseInt(id));
+        
+        if (productIndex === -1) {
+            return res.status(404).json({ error: 'Product not found' });
+        }
+
+        products.splice(productIndex, 1);
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Delete product error:', error);
+        res.status(500).json({ error: error.message });
+    }
 });
 
 module.exports = router;

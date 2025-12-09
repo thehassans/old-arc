@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LayoutDashboard, ShoppingBag, MessageSquare, Users, Settings, LogOut, Save, Phone, Mail, MapPin, Facebook, Twitter, Instagram, Youtube, Menu, X, Loader2, RefreshCw, Calendar, Clock, Edit2, Check, XCircle } from 'lucide-react';
+import { LayoutDashboard, ShoppingBag, MessageSquare, Users, Settings, LogOut, Save, Phone, Mail, MapPin, Facebook, Twitter, Instagram, Youtube, Menu, X, Loader2, RefreshCw, Calendar, Clock, Edit2, Check, XCircle, Package, Plus, Trash2, Image } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import axios from 'axios';
 
@@ -17,6 +17,16 @@ const Admin = () => {
     const [ordersLoading, setOrdersLoading] = useState(false);
     const [editingOrder, setEditingOrder] = useState(null);
     const [editForm, setEditForm] = useState({ status: '', scheduled_date: '', scheduled_time: '', order_date: '' });
+
+    // Products state
+    const [productsData, setProductsData] = useState([]);
+    const [productsLoading, setProductsLoading] = useState(false);
+    const [showProductModal, setShowProductModal] = useState(false);
+    const [editingProduct, setEditingProduct] = useState(null);
+    const [productForm, setProductForm] = useState({
+        title: '', description: '', price: '', category: 'Consoles', image_url: '', stock: ''
+    });
+    const productCategories = ['Consoles', 'Games', 'Accessories', 'Merch'];
 
     // Check authentication
     useEffect(() => {
@@ -68,6 +78,70 @@ const Admin = () => {
     const handleCancelEdit = () => {
         setEditingOrder(null);
         setEditForm({ status: '', scheduled_date: '', scheduled_time: '', order_date: '' });
+    };
+
+    // Fetch products when products tab is active
+    useEffect(() => {
+        if (activeTab === 'products' || activeTab === 'dashboard') {
+            fetchProducts();
+        }
+    }, [activeTab]);
+
+    const fetchProducts = async () => {
+        setProductsLoading(true);
+        try {
+            const response = await axios.get(`${API_URL}/api/stripe/products`);
+            setProductsData(response.data);
+        } catch (error) {
+            console.error('Failed to fetch products:', error);
+        } finally {
+            setProductsLoading(false);
+        }
+    };
+
+    const handleAddProduct = () => {
+        setEditingProduct(null);
+        setProductForm({ title: '', description: '', price: '', category: 'Consoles', image_url: '', stock: '' });
+        setShowProductModal(true);
+    };
+
+    const handleEditProduct = (product) => {
+        setEditingProduct(product.id);
+        setProductForm({
+            title: product.title,
+            description: product.description || '',
+            price: product.price.toString(),
+            category: product.category || 'Consoles',
+            image_url: product.image_url || '',
+            stock: product.stock?.toString() || '0'
+        });
+        setShowProductModal(true);
+    };
+
+    const handleSaveProduct = async () => {
+        try {
+            if (editingProduct) {
+                await axios.put(`${API_URL}/api/stripe/products/${editingProduct}`, productForm);
+            } else {
+                await axios.post(`${API_URL}/api/stripe/products`, productForm);
+            }
+            setShowProductModal(false);
+            setEditingProduct(null);
+            fetchProducts();
+        } catch (error) {
+            console.error('Failed to save product:', error);
+        }
+    };
+
+    const handleDeleteProduct = async (productId) => {
+        if (window.confirm('Are you sure you want to delete this product?')) {
+            try {
+                await axios.delete(`${API_URL}/api/stripe/products/${productId}`);
+                fetchProducts();
+            } catch (error) {
+                console.error('Failed to delete product:', error);
+            }
+        }
     };
 
     // Settings state
@@ -145,6 +219,7 @@ const Admin = () => {
                 <nav className="flex-grow px-4 space-y-2">
                     {[
                         { id: 'dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+                        { id: 'products', icon: Package, label: 'Products' },
                         { id: 'orders', icon: ShoppingBag, label: 'Orders' },
                         { id: 'queries', icon: MessageSquare, label: 'Queries' },
                         { id: 'users', icon: Users, label: 'Users' },
@@ -295,6 +370,173 @@ const Admin = () => {
                                         </div>
                                     ))}
                                 </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Products Tab */}
+                {activeTab === 'products' && (
+                    <div className="space-y-6">
+                        <div className="flex items-center justify-between">
+                            <h1 className="text-3xl font-bold" style={{ color: isDark ? '#ffffff' : '#0a0a0f' }}>Products</h1>
+                            <div className="flex gap-3">
+                                <button onClick={fetchProducts} className="flex items-center gap-2 px-4 py-2 rounded-lg transition-colors" style={{ backgroundColor: isDark ? '#1a1a2e' : '#e2e8f0', color: isDark ? '#ffffff' : '#0a0a0f' }}>
+                                    <RefreshCw size={18} className={productsLoading ? 'animate-spin' : ''} />
+                                </button>
+                                <button onClick={handleAddProduct} className="flex items-center gap-2 px-4 py-2 rounded-lg transition-colors" style={{ backgroundColor: '#a855f7', color: '#ffffff' }}>
+                                    <Plus size={18} />
+                                    Add Product
+                                </button>
+                            </div>
+                        </div>
+                        
+                        {productsLoading ? (
+                            <div className="flex justify-center py-16">
+                                <Loader2 size={32} className="animate-spin text-primary" />
+                            </div>
+                        ) : productsData.length === 0 ? (
+                            <div className="rounded-xl p-12 text-center" style={cardStyle}>
+                                <Package size={48} className="mx-auto mb-4 opacity-50" style={{ color: isDark ? '#8b8b9e' : '#64748b' }} />
+                                <p style={{ color: isDark ? '#8b8b9e' : '#64748b' }}>No products yet. Click "Add Product" to create your first product.</p>
+                            </div>
+                        ) : (
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                {productsData.map(product => (
+                                    <div key={product.id} className="rounded-xl overflow-hidden" style={cardStyle}>
+                                        <div className="h-40 bg-cover bg-center" style={{ 
+                                            backgroundImage: product.image_url ? `url(${product.image_url})` : 'none',
+                                            backgroundColor: isDark ? '#0a0a0f' : '#e2e8f0'
+                                        }}>
+                                            {!product.image_url && (
+                                                <div className="h-full flex items-center justify-center">
+                                                    <Image size={48} style={{ color: isDark ? '#3a3a4a' : '#cbd5e1' }} />
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div className="p-4">
+                                            <div className="flex justify-between items-start mb-2">
+                                                <h3 className="font-bold" style={{ color: isDark ? '#ffffff' : '#0a0a0f' }}>{product.title}</h3>
+                                                <span className="text-lg font-bold" style={{ color: '#a855f7' }}>£{product.price?.toFixed(2)}</span>
+                                            </div>
+                                            <p className="text-sm mb-3 line-clamp-2" style={{ color: isDark ? '#8b8b9e' : '#64748b' }}>{product.description}</p>
+                                            <div className="flex justify-between items-center">
+                                                <div className="flex gap-2">
+                                                    <span className="px-2 py-1 rounded text-xs" style={{ backgroundColor: isDark ? '#1a1a2e' : '#e2e8f0', color: isDark ? '#8b8b9e' : '#64748b' }}>{product.category}</span>
+                                                    <span className="px-2 py-1 rounded text-xs" style={{ backgroundColor: isDark ? '#1a1a2e' : '#e2e8f0', color: isDark ? '#8b8b9e' : '#64748b' }}>Stock: {product.stock}</span>
+                                                </div>
+                                                <div className="flex gap-2">
+                                                    <button onClick={() => handleEditProduct(product)} className="p-2 rounded-lg hover:bg-primary/10 transition-colors" style={{ color: '#a855f7' }}>
+                                                        <Edit2 size={16} />
+                                                    </button>
+                                                    <button onClick={() => handleDeleteProduct(product.id)} className="p-2 rounded-lg hover:bg-red-500/10 transition-colors" style={{ color: '#ef4444' }}>
+                                                        <Trash2 size={16} />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                )}
+
+                {/* Product Modal */}
+                {showProductModal && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(0,0,0,0.7)' }}>
+                        <div className="w-full max-w-lg rounded-xl p-6" style={cardStyle}>
+                            <h2 className="text-2xl font-bold mb-6" style={{ color: isDark ? '#ffffff' : '#0a0a0f' }}>
+                                {editingProduct ? 'Edit Product' : 'Add New Product'}
+                            </h2>
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium mb-2" style={{ color: isDark ? '#8b8b9e' : '#64748b' }}>Title *</label>
+                                    <input
+                                        type="text"
+                                        value={productForm.title}
+                                        onChange={(e) => setProductForm({...productForm, title: e.target.value})}
+                                        className="w-full px-4 py-3 rounded-lg"
+                                        style={inputStyle}
+                                        placeholder="Product title"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium mb-2" style={{ color: isDark ? '#8b8b9e' : '#64748b' }}>Description</label>
+                                    <textarea
+                                        value={productForm.description}
+                                        onChange={(e) => setProductForm({...productForm, description: e.target.value})}
+                                        className="w-full px-4 py-3 rounded-lg resize-none"
+                                        style={inputStyle}
+                                        rows={3}
+                                        placeholder="Product description"
+                                    />
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-sm font-medium mb-2" style={{ color: isDark ? '#8b8b9e' : '#64748b' }}>Price (£) *</label>
+                                        <input
+                                            type="number"
+                                            step="0.01"
+                                            value={productForm.price}
+                                            onChange={(e) => setProductForm({...productForm, price: e.target.value})}
+                                            className="w-full px-4 py-3 rounded-lg"
+                                            style={inputStyle}
+                                            placeholder="0.00"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium mb-2" style={{ color: isDark ? '#8b8b9e' : '#64748b' }}>Stock</label>
+                                        <input
+                                            type="number"
+                                            value={productForm.stock}
+                                            onChange={(e) => setProductForm({...productForm, stock: e.target.value})}
+                                            className="w-full px-4 py-3 rounded-lg"
+                                            style={inputStyle}
+                                            placeholder="0"
+                                        />
+                                    </div>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium mb-2" style={{ color: isDark ? '#8b8b9e' : '#64748b' }}>Category</label>
+                                    <select
+                                        value={productForm.category}
+                                        onChange={(e) => setProductForm({...productForm, category: e.target.value})}
+                                        className="w-full px-4 py-3 rounded-lg"
+                                        style={inputStyle}
+                                    >
+                                        {productCategories.map(cat => (
+                                            <option key={cat} value={cat}>{cat}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium mb-2" style={{ color: isDark ? '#8b8b9e' : '#64748b' }}>Image URL</label>
+                                    <input
+                                        type="text"
+                                        value={productForm.image_url}
+                                        onChange={(e) => setProductForm({...productForm, image_url: e.target.value})}
+                                        className="w-full px-4 py-3 rounded-lg"
+                                        style={inputStyle}
+                                        placeholder="https://example.com/image.jpg"
+                                    />
+                                </div>
+                            </div>
+                            <div className="flex gap-3 mt-6">
+                                <button
+                                    onClick={() => setShowProductModal(false)}
+                                    className="flex-1 px-4 py-3 rounded-lg transition-colors"
+                                    style={{ backgroundColor: isDark ? '#1a1a2e' : '#e2e8f0', color: isDark ? '#ffffff' : '#0a0a0f' }}
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={handleSaveProduct}
+                                    className="flex-1 px-4 py-3 rounded-lg transition-colors"
+                                    style={{ backgroundColor: '#a855f7', color: '#ffffff' }}
+                                >
+                                    {editingProduct ? 'Update Product' : 'Add Product'}
+                                </button>
                             </div>
                         </div>
                     </div>

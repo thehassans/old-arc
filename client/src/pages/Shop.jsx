@@ -3,6 +3,9 @@ import { motion } from 'framer-motion';
 import ProductCard from '../components/ProductCard';
 import { Filter, Search, SlidersHorizontal } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
+import axios from 'axios';
+
+const API_URL = import.meta.env.VITE_API_URL || '';
 
 const Shop = () => {
     const [products, setProducts] = useState([]);
@@ -13,28 +16,20 @@ const Shop = () => {
 
     const categories = ['All', 'Consoles', 'Games', 'Accessories', 'Merch'];
 
-    // Mock data
-    const mockProducts = [
-        { id: 1, title: 'Retro Console X', description: 'The ultimate retro gaming experience with 5000+ games.', price: 159.99, category: 'Consoles', image_url: 'https://images.unsplash.com/photo-1606144042614-b2417e99c4e3?auto=format&fit=crop&w=600&q=80' },
-        { id: 2, title: 'Wireless Pro Controller', description: 'Ergonomic design with precision analogue sticks.', price: 44.99, category: 'Accessories', image_url: 'https://images.unsplash.com/photo-1600080972464-8e5f35f63d08?auto=format&fit=crop&w=600&q=80' },
-        { id: 3, title: 'Arcade Fighting Stick', description: 'Tournament-grade arcade stick with Sanwa buttons.', price: 109.99, category: 'Accessories', image_url: 'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=600&q=80' },
-        { id: 4, title: 'Classic Game Bundle', description: 'Collection of 10 retro classic titles.', price: 69.99, category: 'Games', image_url: 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=600&q=80' },
-        { id: 5, title: 'Handheld Retro Console', description: 'Portable gaming with 3.5" screen.', price: 124.99, category: 'Consoles', image_url: 'https://images.unsplash.com/photo-1531525645387-7f14be1bdbbd?auto=format&fit=crop&w=600&q=80' },
-        { id: 6, title: 'Arcade Neon Sign', description: 'LED neon sign to light up your gaming space.', price: 64.99, category: 'Merch', image_url: 'https://images.unsplash.com/photo-1563207153-f403bf289096?auto=format&fit=crop&w=600&q=80' },
-        { id: 7, title: 'Gaming Headset RGB', description: '7.1 surround sound with noise cancellation.', price: 79.99, category: 'Accessories', image_url: 'https://images.unsplash.com/photo-1599669454699-248893623440?auto=format&fit=crop&w=600&q=80' },
-        { id: 8, title: 'Controller Charging Dock', description: 'Dual charging station with LED indicators.', price: 24.99, category: 'Accessories', image_url: 'https://images.unsplash.com/photo-1595225476474-87563907a212?auto=format&fit=crop&w=600&q=80' },
-        { id: 9, title: 'Retro Gaming Mousepad', description: 'XXL gaming mousepad with pixel art design.', price: 19.99, category: 'Accessories', image_url: 'https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?auto=format&fit=crop&w=600&q=80' },
-        { id: 10, title: 'RGB Backlit Keyboard', description: 'Mechanical keyboard with customizable RGB.', price: 89.99, category: 'Accessories', image_url: 'https://images.unsplash.com/photo-1541140532154-b024d705b90a?auto=format&fit=crop&w=600&q=80' },
-        { id: 11, title: 'Game Collector\'s Box', description: 'Limited edition game storage box.', price: 34.99, category: 'Merch', image_url: 'https://images.unsplash.com/photo-1615680022647-99c397cbcaea?auto=format&fit=crop&w=600&q=80' },
-        { id: 12, title: 'Controller Grip Set', description: 'Silicone grips for enhanced comfort.', price: 12.99, category: 'Accessories', image_url: 'https://images.unsplash.com/photo-1578303512597-81e6cc155b3e?auto=format&fit=crop&w=600&q=80' },
-    ];
-
     useEffect(() => {
-        setTimeout(() => {
-            setProducts(mockProducts);
-            setLoading(false);
-        }, 800);
+        fetchProducts();
     }, []);
+
+    const fetchProducts = async () => {
+        try {
+            const response = await axios.get(`${API_URL}/api/stripe/products`);
+            setProducts(response.data);
+        } catch (error) {
+            console.error('Failed to fetch products:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const filteredProducts = products.filter(p => {
         const matchesCategory = selectedCategory === 'All' || p.category === selectedCategory;
