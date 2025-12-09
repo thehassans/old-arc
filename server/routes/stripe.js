@@ -5,12 +5,23 @@ const router = express.Router();
 let orders = [];
 let orderIdCounter = 1;
 
-// Initialize Stripe
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+// Initialize Stripe only if key is provided
+let stripe = null;
+if (process.env.STRIPE_SECRET_KEY) {
+    stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+}
 
 // Create checkout session
 router.post('/create-checkout-session', async (req, res) => {
     try {
+        // Check if Stripe is configured
+        if (!stripe) {
+            return res.status(503).json({ 
+                error: 'Card payments are temporarily unavailable. Please use Cash on Delivery.',
+                stripeNotConfigured: true
+            });
+        }
+
         const { items, customerEmail } = req.body;
 
         if (!items || items.length === 0) {
@@ -76,6 +87,10 @@ router.post('/create-checkout-session', async (req, res) => {
 // Verify session and create order
 router.get('/verify-session/:sessionId', async (req, res) => {
     try {
+        if (!stripe) {
+            return res.status(503).json({ error: 'Stripe not configured' });
+        }
+        
         const { sessionId } = req.params;
         const session = await stripe.checkout.sessions.retrieve(sessionId);
 
@@ -213,6 +228,10 @@ router.delete('/orders/:orderId', (req, res) => {
 
 // Stripe webhook for automatic order creation
 router.post('/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
+    if (!stripe) {
+        return res.status(503).json({ error: 'Stripe not configured' });
+    }
+    
     const sig = req.headers['stripe-signature'];
     let event;
 
