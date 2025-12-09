@@ -188,6 +188,8 @@ const Admin = () => {
 
     const handleSaveSettings = () => {
         localStorage.setItem('siteSettings', JSON.stringify(settings));
+        // Dispatch custom event to update Footer immediately
+        window.dispatchEvent(new Event('settingsUpdated'));
         setSaved(true);
         setTimeout(() => setSaved(false), 2000);
     };

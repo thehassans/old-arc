@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Facebook, Twitter, Instagram, Youtube, Gamepad2, Mail, MapPin, Phone } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -6,6 +6,50 @@ import { useTheme } from '../context/ThemeContext';
 
 const Footer = () => {
     const { isDark } = useTheme();
+    
+    // Default settings
+    const defaultSettings = {
+        phone: '+447782260144',
+        email: 'hello@old-arcade.com',
+        address: 'London, UK',
+        facebook: 'https://facebook.com/oldarcade',
+        twitter: 'https://twitter.com/oldarcade',
+        instagram: 'https://instagram.com/oldarcade',
+        youtube: 'https://youtube.com/oldarcade',
+    };
+
+    const [settings, setSettings] = useState(defaultSettings);
+
+    // Load settings from localStorage
+    useEffect(() => {
+        const savedSettings = localStorage.getItem('siteSettings');
+        if (savedSettings) {
+            try {
+                setSettings({ ...defaultSettings, ...JSON.parse(savedSettings) });
+            } catch (e) {
+                console.error('Error parsing settings:', e);
+            }
+        }
+
+        // Listen for storage changes (when admin saves settings)
+        const handleStorageChange = () => {
+            const updated = localStorage.getItem('siteSettings');
+            if (updated) {
+                try {
+                    setSettings({ ...defaultSettings, ...JSON.parse(updated) });
+                } catch (e) {
+                    console.error('Error parsing settings:', e);
+                }
+            }
+        };
+
+        window.addEventListener('storage', handleStorageChange);
+        window.addEventListener('settingsUpdated', handleStorageChange);
+        return () => {
+            window.removeEventListener('storage', handleStorageChange);
+            window.removeEventListener('settingsUpdated', handleStorageChange);
+        };
+    }, []);
 
     const footerLinks = {
         shop: [
@@ -23,10 +67,10 @@ const Footer = () => {
     };
 
     const socialLinks = [
-        { icon: Facebook, href: '#', label: 'Facebook' },
-        { icon: Twitter, href: '#', label: 'Twitter' },
-        { icon: Instagram, href: '#', label: 'Instagram' },
-        { icon: Youtube, href: '#', label: 'Youtube' },
+        { icon: Facebook, href: settings.facebook || '#', label: 'Facebook' },
+        { icon: Twitter, href: settings.twitter || '#', label: 'Twitter' },
+        { icon: Instagram, href: settings.instagram || '#', label: 'Instagram' },
+        { icon: Youtube, href: settings.youtube || '#', label: 'Youtube' },
     ];
 
     return (
@@ -167,7 +211,7 @@ const Footer = () => {
                                     <Mail size={18} style={{ color: '#a855f7' }} />
                                 </div>
                                 <span className="text-sm" style={{ color: isDark ? '#8b8b9e' : '#64748b' }}>
-                                    hello@old-arcade.com
+                                    {settings.email}
                                 </span>
                             </li>
                             <li className="flex items-center gap-3">
@@ -180,7 +224,7 @@ const Footer = () => {
                                     <Phone size={18} style={{ color: '#22d3ee' }} />
                                 </div>
                                 <span className="text-sm" style={{ color: isDark ? '#8b8b9e' : '#64748b' }}>
-                                    +44 7782 260144
+                                    {settings.phone}
                                 </span>
                             </li>
                             <li className="flex items-center gap-3">
@@ -193,7 +237,7 @@ const Footer = () => {
                                     <MapPin size={18} style={{ color: '#ec4899' }} />
                                 </div>
                                 <span className="text-sm" style={{ color: isDark ? '#8b8b9e' : '#64748b' }}>
-                                    London, UK
+                                    {settings.address}
                                 </span>
                             </li>
                         </ul>
