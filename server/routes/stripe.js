@@ -197,7 +197,33 @@ router.post('/create-paypal-order', async (req, res) => {
     }
 });
 
-// Get order by ID (for COD success page)
+// Track order by order number (public - for customers)
+router.get('/orders/track/:orderNumber', (req, res) => {
+    const { orderNumber } = req.params;
+    const order = orders.find(o => 
+        o.order_number?.toLowerCase() === orderNumber.toLowerCase() ||
+        o.order_number?.toLowerCase().replace('ord-', '') === orderNumber.toLowerCase().replace('ord-', '')
+    );
+    
+    if (!order) {
+        return res.status(404).json({ success: false, error: 'Order not found' });
+    }
+    
+    // Return limited info for public tracking (no email/personal details)
+    res.json({ 
+        success: true, 
+        order: {
+            order_number: order.order_number,
+            status: order.status,
+            items: order.items?.map(item => ({ title: item.title, quantity: item.quantity })),
+            created_at: order.created_at,
+            scheduled_date: order.scheduled_date,
+            scheduled_time: order.scheduled_time
+        }
+    });
+});
+
+// Get order by ID (for success page)
 router.get('/orders/:orderId', (req, res) => {
     const { orderId } = req.params;
     const order = orders.find(o => o.id === parseInt(orderId));

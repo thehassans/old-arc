@@ -1,12 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Facebook, Twitter, Instagram, Youtube, Gamepad2, Mail, MapPin, Phone } from 'lucide-react';
+import { Facebook, Twitter, Instagram, Youtube, Gamepad2, Mail, MapPin, Phone, Search, Package, Truck, CheckCircle, Clock, X, Loader2, MapPinned } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useTheme } from '../context/ThemeContext';
+import axios from 'axios';
+
+const API_URL = import.meta.env.VITE_API_URL || '';
 
 const Footer = () => {
     const { isDark } = useTheme();
     
+    // Tracking state
+    const [trackingNumber, setTrackingNumber] = useState('');
+    const [trackingOrder, setTrackingOrder] = useState(null);
+    const [trackingLoading, setTrackingLoading] = useState(false);
+    const [trackingError, setTrackingError] = useState('');
+    const [showTrackingModal, setShowTrackingModal] = useState(false);
+
     // Default settings
     const defaultSettings = {
         phone: '+447782260144',
@@ -51,6 +61,56 @@ const Footer = () => {
             window.removeEventListener('settingsUpdated', handleStorageChange);
         };
     }, []);
+
+    // Track order function
+    const handleTrackOrder = async (e) => {
+        e.preventDefault();
+        if (!trackingNumber.trim()) {
+            setTrackingError('Please enter an order number');
+            return;
+        }
+
+        setTrackingLoading(true);
+        setTrackingError('');
+        setTrackingOrder(null);
+
+        try {
+            const response = await axios.get(`${API_URL}/api/stripe/orders/track/${trackingNumber.trim()}`);
+            if (response.data.success) {
+                setTrackingOrder(response.data.order);
+                setShowTrackingModal(true);
+            } else {
+                setTrackingError('Order not found. Please check your order number.');
+            }
+        } catch (error) {
+            setTrackingError('Order not found. Please check your order number.');
+        } finally {
+            setTrackingLoading(false);
+        }
+    };
+
+    // Get tracking stages based on status
+    const getTrackingStages = (status) => {
+        const stages = [
+            { id: 1, name: 'Order Placed', icon: Package, description: 'Your order has been received' },
+            { id: 2, name: 'Processing', icon: Clock, description: 'Preparing your items for dispatch' },
+            { id: 3, name: 'Dispatched', icon: Truck, description: 'Your parcel is on its way' },
+            { id: 4, name: 'Out for Delivery', icon: MapPinned, description: 'With courier for delivery today' },
+            { id: 5, name: 'Delivered', icon: CheckCircle, description: 'Successfully delivered' },
+        ];
+
+        const statusMap = {
+            'Pending': 1,
+            'Processing': 2,
+            'Shipped': 3,
+            'Out for Delivery': 4,
+            'Delivered': 5,
+            'Cancelled': 0
+        };
+
+        const currentStage = statusMap[status] || 1;
+        return stages.map(stage => ({ ...stage, completed: stage.id <= currentStage, current: stage.id === currentStage }));
+    };
 
     const footerLinks = {
         shop: [
@@ -258,6 +318,57 @@ const Footer = () => {
                     </div>
                 </div>
 
+                {/* Track Your Order Section */}
+                <div 
+                    className="py-8 mb-8"
+                    style={{ 
+                        borderTop: `1px solid ${isDark ? 'rgba(168,85,247,0.1)' : 'rgba(0,0,0,0.05)'}`,
+                        borderBottom: `1px solid ${isDark ? 'rgba(168,85,247,0.1)' : 'rgba(0,0,0,0.05)'}`
+                    }}
+                >
+                    <div className="max-w-xl mx-auto text-center">
+                        <div className="flex items-center justify-center gap-2 mb-4">
+                            <Truck size={24} style={{ color: '#a855f7' }} />
+                            <h3 className="text-xl font-bold" style={{ color: isDark ? '#ffffff' : '#0a0a0f' }}>
+                                Track Your Order
+                            </h3>
+                        </div>
+                        <p className="text-sm mb-4" style={{ color: isDark ? '#8b8b9e' : '#64748b' }}>
+                            Enter your order number to track your delivery status
+                        </p>
+                        <form onSubmit={handleTrackOrder} className="flex gap-3">
+                            <input
+                                type="text"
+                                value={trackingNumber}
+                                onChange={(e) => setTrackingNumber(e.target.value.toUpperCase())}
+                                placeholder="e.g. ORD-0001"
+                                className="flex-1 px-4 py-3 rounded-xl text-center font-medium"
+                                style={{
+                                    backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)',
+                                    border: `1px solid ${isDark ? 'rgba(168,85,247,0.2)' : 'rgba(0,0,0,0.1)'}`,
+                                    color: isDark ? '#ffffff' : '#0a0a0f'
+                                }}
+                            />
+                            <button
+                                type="submit"
+                                disabled={trackingLoading}
+                                className="px-6 py-3 rounded-xl font-semibold flex items-center gap-2 transition-all hover:scale-105"
+                                style={{
+                                    background: 'linear-gradient(135deg, #a855f7, #22d3ee)',
+                                    color: '#ffffff',
+                                    boxShadow: '0 4px 15px rgba(168,85,247,0.3)'
+                                }}
+                            >
+                                {trackingLoading ? <Loader2 size={18} className="animate-spin" /> : <Search size={18} />}
+                                Track
+                            </button>
+                        </form>
+                        {trackingError && (
+                            <p className="mt-3 text-sm" style={{ color: '#ef4444' }}>{trackingError}</p>
+                        )}
+                    </div>
+                </div>
+
                 {/* Bottom Bar */}
                 <div 
                     className="py-6 flex flex-col sm:flex-row items-center justify-between gap-4"
@@ -311,6 +422,175 @@ const Footer = () => {
                     </div>
                 </div>
             </div>
+
+            {/* Tracking Modal */}
+            {showTrackingModal && trackingOrder && (
+                <div 
+                    className="fixed inset-0 z-50 flex items-center justify-center p-4"
+                    style={{ backgroundColor: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(8px)' }}
+                >
+                    <motion.div 
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="w-full max-w-lg rounded-2xl overflow-hidden"
+                        style={{
+                            background: isDark 
+                                ? 'linear-gradient(145deg, #1a1a2e 0%, #12121a 100%)' 
+                                : 'linear-gradient(145deg, #ffffff 0%, #f8fafc 100%)',
+                            border: `1px solid ${isDark ? 'rgba(168,85,247,0.3)' : 'rgba(168,85,247,0.2)'}`,
+                            boxShadow: '0 25px 50px -12px rgba(168,85,247,0.25)'
+                        }}
+                    >
+                        {/* Modal Header */}
+                        <div 
+                            className="px-6 py-5 flex items-center justify-between"
+                            style={{ 
+                                background: 'linear-gradient(135deg, rgba(168,85,247,0.15) 0%, rgba(34,211,238,0.1) 100%)',
+                                borderBottom: `1px solid ${isDark ? 'rgba(168,85,247,0.2)' : 'rgba(168,85,247,0.15)'}`
+                            }}
+                        >
+                            <div className="flex items-center gap-3">
+                                <div 
+                                    className="w-12 h-12 rounded-xl flex items-center justify-center"
+                                    style={{ background: 'linear-gradient(135deg, #a855f7, #22d3ee)' }}
+                                >
+                                    <Truck size={24} color="white" />
+                                </div>
+                                <div>
+                                    <h2 className="text-xl font-bold" style={{ color: isDark ? '#ffffff' : '#0a0a0f' }}>
+                                        Order Tracking
+                                    </h2>
+                                    <p className="text-sm font-medium" style={{ color: '#a855f7' }}>
+                                        {trackingOrder.order_number}
+                                    </p>
+                                </div>
+                            </div>
+                            <button 
+                                onClick={() => setShowTrackingModal(false)}
+                                className="w-10 h-10 rounded-xl flex items-center justify-center transition-all hover:scale-110"
+                                style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)' }}
+                            >
+                                <X size={20} style={{ color: isDark ? '#8b8b9e' : '#64748b' }} />
+                            </button>
+                        </div>
+
+                        {/* Tracking Timeline */}
+                        <div className="px-6 py-6">
+                            {trackingOrder.status === 'Cancelled' ? (
+                                <div className="text-center py-6">
+                                    <div className="w-16 h-16 rounded-full mx-auto mb-4 flex items-center justify-center" style={{ backgroundColor: 'rgba(239,68,68,0.1)' }}>
+                                        <X size={32} style={{ color: '#ef4444' }} />
+                                    </div>
+                                    <h3 className="text-lg font-bold mb-2" style={{ color: '#ef4444' }}>Order Cancelled</h3>
+                                    <p className="text-sm" style={{ color: isDark ? '#8b8b9e' : '#64748b' }}>
+                                        This order has been cancelled. Contact support for assistance.
+                                    </p>
+                                </div>
+                            ) : (
+                                <div className="space-y-0">
+                                    {getTrackingStages(trackingOrder.status).map((stage, index) => (
+                                        <div key={stage.id} className="flex gap-4">
+                                            {/* Timeline Line */}
+                                            <div className="flex flex-col items-center">
+                                                <div 
+                                                    className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${stage.current ? 'ring-4' : ''}`}
+                                                    style={{ 
+                                                        backgroundColor: stage.completed 
+                                                            ? 'rgba(34,197,94,0.2)' 
+                                                            : isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)',
+                                                        ringColor: stage.current ? 'rgba(34,197,94,0.3)' : 'transparent'
+                                                    }}
+                                                >
+                                                    <stage.icon 
+                                                        size={18} 
+                                                        style={{ 
+                                                            color: stage.completed ? '#22c55e' : (isDark ? '#3a3a4a' : '#94a3b8')
+                                                        }} 
+                                                    />
+                                                </div>
+                                                {index < 4 && (
+                                                    <div 
+                                                        className="w-0.5 h-8"
+                                                        style={{ 
+                                                            backgroundColor: stage.completed && getTrackingStages(trackingOrder.status)[index + 1]?.completed
+                                                                ? '#22c55e' 
+                                                                : isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'
+                                                        }}
+                                                    />
+                                                )}
+                                            </div>
+                                            {/* Stage Info */}
+                                            <div className={`pb-6 ${index === 4 ? 'pb-0' : ''}`}>
+                                                <h4 
+                                                    className="font-semibold"
+                                                    style={{ 
+                                                        color: stage.completed 
+                                                            ? (isDark ? '#ffffff' : '#0a0a0f')
+                                                            : (isDark ? '#3a3a4a' : '#94a3b8')
+                                                    }}
+                                                >
+                                                    {stage.name}
+                                                </h4>
+                                                <p 
+                                                    className="text-sm"
+                                                    style={{ 
+                                                        color: stage.completed 
+                                                            ? (isDark ? '#8b8b9e' : '#64748b')
+                                                            : (isDark ? '#2a2a3a' : '#cbd5e1')
+                                                    }}
+                                                >
+                                                    {stage.description}
+                                                </p>
+                                                {stage.current && (
+                                                    <span 
+                                                        className="inline-block mt-2 px-2 py-1 rounded-full text-xs font-medium"
+                                                        style={{ backgroundColor: 'rgba(168,85,247,0.2)', color: '#a855f7' }}
+                                                    >
+                                                        Current Status
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Order Details */}
+                        <div 
+                            className="px-6 py-4"
+                            style={{ 
+                                backgroundColor: isDark ? 'rgba(0,0,0,0.3)' : 'rgba(0,0,0,0.02)',
+                                borderTop: `1px solid ${isDark ? 'rgba(168,85,247,0.2)' : 'rgba(168,85,247,0.15)'}`
+                            }}
+                        >
+                            <div className="grid grid-cols-2 gap-4 text-sm">
+                                <div>
+                                    <p style={{ color: isDark ? '#8b8b9e' : '#64748b' }}>Order Date</p>
+                                    <p className="font-semibold" style={{ color: isDark ? '#ffffff' : '#0a0a0f' }}>
+                                        {new Date(trackingOrder.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                    </p>
+                                </div>
+                                <div>
+                                    <p style={{ color: isDark ? '#8b8b9e' : '#64748b' }}>Items</p>
+                                    <p className="font-semibold" style={{ color: isDark ? '#ffffff' : '#0a0a0f' }}>
+                                        {trackingOrder.items?.length || 0} item(s)
+                                    </p>
+                                </div>
+                                {trackingOrder.scheduled_date && (
+                                    <div className="col-span-2">
+                                        <p style={{ color: isDark ? '#8b8b9e' : '#64748b' }}>Scheduled Delivery</p>
+                                        <p className="font-semibold" style={{ color: '#22c55e' }}>
+                                            {new Date(trackingOrder.scheduled_date).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'short' })}
+                                            {trackingOrder.scheduled_time && ` at ${trackingOrder.scheduled_time}`}
+                                        </p>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </motion.div>
+                </div>
+            )}
         </footer>
     );
 };
