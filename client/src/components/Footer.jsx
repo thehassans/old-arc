@@ -194,28 +194,31 @@ const Footer = () => {
                                 <span className="text-sm font-bold" style={{ color: '#a855f7' }}>Retro Arcade Co LTD</span>
                             </div>
                             
-                            {/* Amazon Authorized Badge */}
+                            {/* Amazon Authorized Badge - Premium */}
                             <Link 
                                 to="/about"
                                 className="flex items-center gap-3 px-4 py-3 rounded-xl transition-all hover:scale-[1.02]"
                                 style={{ 
                                     background: 'linear-gradient(135deg, #232F3E 0%, #131921 100%)',
-                                    border: '1px solid rgba(255,153,0,0.4)',
-                                    boxShadow: '0 4px 15px rgba(0,0,0,0.3)'
+                                    border: '1px solid rgba(255,153,0,0.5)',
+                                    boxShadow: '0 4px 20px rgba(0,0,0,0.4)'
                                 }}
                             >
-                                <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: '#ffffff' }}>
-                                    <svg viewBox="0 0 603 182" className="w-7 h-auto">
-                                        <path fill="#FF9900" d="M374.00,141.00 C338.79,167.80 287.23,182.00 243.39,182.00 C181.28,182.00 125.44,158.68 83.04,119.87 C79.76,116.89 82.68,112.82 86.61,115.18 C132.11,141.56 188.69,157.47 247.21,157.47 C286.47,157.47 329.57,149.47 369.08,132.84 C374.85,130.35 379.72,136.65 374.00,141.00 Z"/>
-                                        <path fill="#FF9900" d="M385.47,127.76 C381.05,122.08 355.17,125.13 343.45,126.52 C339.99,126.93 339.45,123.91 342.55,121.71 C363.26,107.02 397.75,111.21 401.54,115.95 C405.33,120.72 400.45,155.25 381.12,171.63 C378.24,174.10 375.49,172.82 376.78,169.64 C380.97,159.07 389.92,133.48 385.47,127.76 Z"/>
+                                <div className="w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0 p-1.5" style={{ backgroundColor: '#ffffff' }}>
+                                    <svg viewBox="0 0 100 30" className="w-full h-auto">
+                                        <path fill="#232F3E" d="M25.5,17.2c0,0.7,0.1,1.3,0.2,1.7c0.2,0.4,0.4,0.9,0.7,1.4c0.1,0.2,0.2,0.3,0.2,0.4c0,0.2-0.1,0.3-0.3,0.5l-1.1,0.7c-0.1,0.1-0.3,0.1-0.4,0.1c-0.2,0-0.3-0.1-0.5-0.3c-0.3-0.3-0.5-0.7-0.7-1c-0.2-0.4-0.4-0.8-0.6-1.3c-1.6,1.9-3.6,2.8-6,2.8c-1.7,0-3.1-0.5-4.1-1.5c-1-1-1.5-2.3-1.5-3.9c0-1.7,0.6-3.1,1.8-4.2c1.2-1.1,2.9-1.6,4.9-1.6c0.7,0,1.4,0.1,2.1,0.2c0.7,0.1,1.5,0.3,2.3,0.5v-1.5c0-1.5-0.3-2.6-0.9-3.2c-0.6-0.6-1.7-0.9-3.2-0.9c-0.7,0-1.4,0.1-2.1,0.3c-0.7,0.2-1.4,0.4-2.1,0.7c-0.3,0.1-0.5,0.2-0.6,0.2c-0.1,0-0.2,0-0.3,0c-0.2,0-0.3-0.2-0.3-0.5V5.4c0-0.3,0-0.5,0.1-0.6c0.1-0.1,0.2-0.2,0.5-0.4c0.7-0.3,1.5-0.6,2.5-0.9c1-0.2,2-0.4,3.2-0.4c2.4,0,4.2,0.6,5.3,1.7c1.1,1.1,1.6,2.8,1.6,5.1V17.2z M19.5,19.1c0.7,0,1.3-0.1,2.1-0.4c0.7-0.3,1.3-0.7,1.8-1.3c0.3-0.4,0.5-0.8,0.6-1.3c0.1-0.5,0.2-1.1,0.2-1.8v-0.9c-0.6-0.2-1.2-0.3-1.8-0.4c-0.6-0.1-1.2-0.1-1.8-0.1c-1.4,0-2.4,0.3-3,0.8c-0.7,0.5-1,1.3-1,2.4c0,1,0.3,1.7,0.8,2.2C18,18.9,18.6,19.1,19.5,19.1z"/>
+                                        <path fill="#232F3E" d="M38.7,21.5c-0.2,0-0.4,0-0.5-0.1c-0.1-0.1-0.2-0.3-0.3-0.5l-5.6-18.4c-0.1-0.3-0.2-0.5-0.2-0.6c0-0.2,0.1-0.4,0.4-0.4h1.7c0.3,0,0.4,0,0.5,0.1c0.1,0.1,0.2,0.3,0.3,0.5l4,15.7l3.7-15.7c0.1-0.3,0.1-0.4,0.3-0.5c0.1-0.1,0.3-0.1,0.5-0.1h1.4c0.3,0,0.4,0,0.5,0.1c0.1,0.1,0.2,0.3,0.3,0.5l3.7,15.9l4.1-15.9c0.1-0.3,0.2-0.4,0.3-0.5c0.1-0.1,0.3-0.1,0.5-0.1h1.6c0.2,0,0.4,0.1,0.4,0.4c0,0.1,0,0.2,0,0.3c0,0.1-0.1,0.2-0.1,0.3l-5.7,18.4c-0.1,0.3-0.2,0.4-0.3,0.5c-0.1,0.1-0.3,0.1-0.5,0.1h-1.5c-0.3,0-0.4,0-0.5-0.1c-0.1-0.1-0.2-0.3-0.3-0.5l-3.6-15.3l-3.6,15.3c-0.1,0.3-0.1,0.4-0.3,0.5c-0.1,0.1-0.3,0.1-0.5,0.1H38.7z"/>
+                                        <path fill="#232F3E" d="M67.3,22.1c-1.3,0-2.6-0.2-3.8-0.5c-1.2-0.3-2.2-0.7-2.8-1.1c-0.4-0.2-0.6-0.5-0.7-0.7c-0.1-0.2-0.1-0.4-0.1-0.6v-0.9c0-0.4,0.1-0.5,0.4-0.5c0.1,0,0.2,0,0.3,0.1c0.1,0,0.2,0.1,0.4,0.2c0.5,0.3,1.1,0.5,1.8,0.6c0.7,0.2,1.3,0.2,2,0.2c1.1,0,1.9-0.2,2.5-0.6c0.6-0.4,0.9-1,0.9-1.7c0-0.5-0.2-0.9-0.5-1.3c-0.3-0.4-1-0.7-1.9-1l-2.8-0.9c-1.4-0.4-2.4-1.1-3-2c-0.6-0.9-0.9-1.8-0.9-2.9c0-0.8,0.2-1.6,0.5-2.2c0.3-0.7,0.8-1.2,1.4-1.7c0.6-0.5,1.3-0.8,2.1-1.1c0.8-0.2,1.7-0.4,2.6-0.4c0.5,0,0.9,0,1.4,0.1c0.5,0.1,0.9,0.2,1.4,0.3c0.4,0.1,0.8,0.3,1.2,0.4c0.4,0.2,0.6,0.3,0.8,0.5c0.3,0.2,0.4,0.3,0.5,0.5c0.1,0.2,0.1,0.4,0.1,0.7v0.8c0,0.4-0.1,0.5-0.4,0.5c-0.1,0-0.3-0.1-0.5-0.2c-0.9-0.4-1.9-0.6-3-0.6c-1,0-1.7,0.2-2.3,0.5c-0.5,0.3-0.8,0.9-0.8,1.6c0,0.5,0.2,1,0.5,1.3c0.4,0.4,1,0.7,2,1l2.7,0.9c1.4,0.4,2.3,1.1,2.9,1.9c0.6,0.8,0.8,1.8,0.8,2.8c0,0.9-0.2,1.6-0.5,2.3c-0.3,0.7-0.8,1.3-1.4,1.8c-0.6,0.5-1.3,0.9-2.2,1.1C69.3,22,68.3,22.1,67.3,22.1z"/>
+                                        <path fill="#FF9900" d="M72.5,26.3c-6.7,4.9-16.3,7.5-24.6,7.5c-11.7,0-22.1-4.3-30.1-11.5c-0.6-0.6-0.1-1.3,0.7-0.9c8.6,5,19.2,8,30.1,8c7.4,0,15.5-1.5,22.9-4.7C72.6,24.3,73.5,25.5,72.5,26.3z"/>
+                                        <path fill="#FF9900" d="M75,23.3c-0.9-1.1-5.7-0.5-7.9-0.3c-0.7,0.1-0.8-0.5-0.2-0.9c3.9-2.7,10.2-1.9,10.9-1c0.7,0.9-0.2,7.3-3.8,10.3c-0.6,0.5-1.1,0.2-0.9-0.4C74,28.6,75.9,24.4,75,23.3z"/>
                                     </svg>
                                 </div>
                                 <div>
                                     <div className="flex items-center gap-2">
-                                        <span className="text-sm font-bold text-white">Amazon Authorized</span>
+                                        <span className="text-sm font-bold text-white">Authorized Seller</span>
                                         <CheckCircle size={14} style={{ color: '#FF9900' }} />
                                     </div>
-                                    <span className="text-xs" style={{ color: '#A0AEC0' }}>Official Seller</span>
+                                    <span className="text-xs" style={{ color: '#FF9900' }}>amazon.co.uk</span>
                                 </div>
                             </Link>
                         </div>
@@ -343,35 +346,29 @@ const Footer = () => {
                     </div>
                 </div>
 
-                {/* Track Your Order Section */}
+                {/* Track Your Order Section - Minimal */}
                 <div 
-                    className="py-8 mb-8"
+                    className="py-6 mb-6"
                     style={{ 
                         borderTop: `1px solid ${isDark ? 'rgba(168,85,247,0.1)' : 'rgba(0,0,0,0.05)'}`,
                         borderBottom: `1px solid ${isDark ? 'rgba(168,85,247,0.1)' : 'rgba(0,0,0,0.05)'}`
                     }}
                 >
-                    <div className="max-w-xl mx-auto text-center">
-                        <div className="flex items-center justify-center gap-2 mb-4">
-                            <Truck size={24} style={{ color: '#a855f7' }} />
-                            <h3 className="text-xl font-bold" style={{ color: isDark ? '#ffffff' : '#0a0a0f' }}>
-                                Track Your Order
-                            </h3>
-                        </div>
-                        <p className="text-sm mb-6" style={{ color: isDark ? '#8b8b9e' : '#64748b' }}>
-                            Track your delivery status in real-time with our UK courier-style tracking
-                        </p>
+                    <div className="flex items-center justify-center gap-4">
+                        <Truck size={20} style={{ color: '#a855f7' }} />
+                        <span className="text-sm" style={{ color: isDark ? '#8b8b9e' : '#64748b' }}>
+                            Have an order?
+                        </span>
                         <Link
                             to="/track-order"
-                            className="inline-flex items-center gap-2 px-8 py-4 rounded-xl font-bold transition-all hover:scale-105"
+                            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all hover:scale-105"
                             style={{
-                                background: 'linear-gradient(135deg, #a855f7, #22d3ee)',
-                                color: '#ffffff',
-                                boxShadow: '0 4px 15px rgba(168,85,247,0.3)'
+                                backgroundColor: isDark ? 'rgba(168,85,247,0.1)' : 'rgba(168,85,247,0.1)',
+                                color: '#a855f7',
+                                border: `1px solid ${isDark ? 'rgba(168,85,247,0.3)' : 'rgba(168,85,247,0.2)'}`
                             }}
                         >
-                            <Search size={20} />
-                            Track My Order
+                            Track Order
                         </Link>
                     </div>
                 </div>

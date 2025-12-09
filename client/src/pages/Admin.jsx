@@ -523,8 +523,9 @@ const Admin = () => {
                                         </div>
                                         {/* Upload Options */}
                                         <div className="space-y-3">
-                                            <div 
-                                                className="p-4 rounded-xl text-center cursor-pointer transition-all hover:scale-[1.02]"
+                                            <label 
+                                                htmlFor="product-image-upload"
+                                                className="block p-4 rounded-xl text-center cursor-pointer transition-all hover:scale-[1.02]"
                                                 style={{ 
                                                     backgroundColor: isDark ? 'rgba(168,85,247,0.1)' : 'rgba(168,85,247,0.1)',
                                                     border: `1px solid ${isDark ? 'rgba(168,85,247,0.3)' : 'rgba(168,85,247,0.3)'}`
@@ -533,34 +534,31 @@ const Admin = () => {
                                                 <Upload size={24} style={{ color: '#a855f7', margin: '0 auto 8px' }} />
                                                 <p className="text-sm font-medium" style={{ color: '#a855f7' }}>Upload Image</p>
                                                 <p className="text-xs mt-1" style={{ color: isDark ? '#8b8b9e' : '#64748b' }}>PNG, JPG up to 5MB</p>
-                                                <input 
-                                                    type="file" 
-                                                    accept="image/*"
-                                                    className="hidden"
-                                                    onChange={(e) => {
-                                                        const file = e.target.files[0];
-                                                        if (file) {
-                                                            const reader = new FileReader();
-                                                            reader.onloadend = () => {
-                                                                setProductForm({...productForm, image_url: reader.result});
-                                                            };
-                                                            reader.readAsDataURL(file);
-                                                        }
-                                                    }}
-                                                    id="product-image-upload"
-                                                />
-                                                <label htmlFor="product-image-upload" className="absolute inset-0 cursor-pointer" />
-                                            </div>
-                                            <div className="relative">
-                                                <input
-                                                    type="text"
-                                                    value={productForm.image_url}
-                                                    onChange={(e) => setProductForm({...productForm, image_url: e.target.value})}
-                                                    className="w-full px-4 py-3 rounded-xl text-sm"
-                                                    style={inputStyle}
-                                                    placeholder="Or paste image URL..."
-                                                />
-                                            </div>
+                                            </label>
+                                            <input 
+                                                type="file" 
+                                                accept="image/*"
+                                                className="hidden"
+                                                onChange={(e) => {
+                                                    const file = e.target.files[0];
+                                                    if (file) {
+                                                        const reader = new FileReader();
+                                                        reader.onloadend = () => {
+                                                            setProductForm({...productForm, image_url: reader.result});
+                                                        };
+                                                        reader.readAsDataURL(file);
+                                                    }
+                                                }}
+                                                id="product-image-upload"
+                                            />
+                                            <input
+                                                type="text"
+                                                value={productForm.image_url}
+                                                onChange={(e) => setProductForm({...productForm, image_url: e.target.value})}
+                                                className="w-full px-4 py-3 rounded-xl text-sm outline-none"
+                                                style={inputStyle}
+                                                placeholder="Or paste image URL..."
+                                            />
                                         </div>
                                     </div>
                                 </div>
