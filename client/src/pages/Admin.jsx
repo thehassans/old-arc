@@ -148,7 +148,8 @@ const Admin = () => {
     const [settings, setSettings] = useState({
         phone: '+447782260144',
         email: 'hello@old-arcade.com',
-        address: 'London, UK',
+        address: '7 Llewellyn Close, Stourport-On-Severn, England, DY13 9RH',
+        aboutUs: 'Your premium destination for retro gaming excellence. Discover legendary consoles, timeless games, and elite accessories.',
         facebook: 'https://facebook.com/oldarcade',
         twitter: 'https://twitter.com/oldarcade',
         instagram: 'https://instagram.com/oldarcade',
@@ -757,6 +758,24 @@ const Admin = () => {
                                 Settings saved successfully!
                             </div>
                         )}
+
+                        {/* About Us */}
+                        <div className="p-6 rounded-xl space-y-4" style={cardStyle}>
+                            <h2 className="text-xl font-semibold mb-4" style={{ color: isDark ? '#ffffff' : '#0a0a0f' }}>About Us</h2>
+                            <div>
+                                <label className="block text-sm font-medium mb-2" style={{ color: isDark ? '#8b8b9e' : '#64748b' }}>
+                                    Footer About Text
+                                </label>
+                                <textarea 
+                                    value={settings.aboutUs} 
+                                    onChange={(e) => setSettings({...settings, aboutUs: e.target.value})} 
+                                    className="w-full px-4 py-3 rounded-lg resize-none" 
+                                    style={inputStyle}
+                                    rows={4}
+                                    placeholder="Enter your about us text for the footer..."
+                                />
+                            </div>
+                        </div>
 
                         {/* Contact Information */}
                         <div className="p-6 rounded-xl space-y-4" style={cardStyle}>

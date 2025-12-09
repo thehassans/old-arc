@@ -11,7 +11,8 @@ const Footer = () => {
     const defaultSettings = {
         phone: '+447782260144',
         email: 'hello@old-arcade.com',
-        address: 'London, UK',
+        address: '7 Llewellyn Close, Stourport-On-Severn, England, DY13 9RH',
+        aboutUs: 'Your premium destination for retro gaming excellence. Discover legendary consoles, timeless games, and elite accessories.',
         facebook: 'https://facebook.com/oldarcade',
         twitter: 'https://twitter.com/oldarcade',
         instagram: 'https://instagram.com/oldarcade',
@@ -117,8 +118,7 @@ const Footer = () => {
                             className="text-sm leading-relaxed mb-6"
                             style={{ color: isDark ? '#8b8b9e' : '#64748b' }}
                         >
-                            Your premium destination for retro gaming excellence. Discover legendary consoles, 
-                            timeless games, and elite accessories.
+                            {settings.aboutUs}
                         </p>
                         
                         {/* Social Links */}
@@ -263,7 +263,7 @@ const Footer = () => {
                             className="text-sm font-medium transition-colors"
                             style={{ color: '#a855f7' }}
                         >
-                            Powered by VitalBlaze
+                            Powered by VITALBLAZE
                         </a>
                     </div>
                     <div className="flex items-center gap-6">
