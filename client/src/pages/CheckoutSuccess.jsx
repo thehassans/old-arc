@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { CheckCircle, Package, ArrowRight, Loader2, Truck } from 'lucide-react';
+import { CheckCircle, Package, ArrowRight, Loader2 } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import { useCart } from '../context/CartContext';
 import axios from 'axios';
@@ -17,14 +17,14 @@ const CheckoutSuccess = () => {
 
     const sessionId = searchParams.get('session_id');
     const orderId = searchParams.get('order_id');
-    const isCod = searchParams.get('cod') === 'true';
+    const isPaypal = searchParams.get('paypal') === 'true';
     const isCard = searchParams.get('card') === 'true';
 
     useEffect(() => {
         const verifyPayment = async () => {
             try {
-                if ((isCod || isCard) && orderId) {
-                    // COD or demo card order - fetch order details
+                if ((isPaypal || isCard) && orderId) {
+                    // PayPal or demo card order - fetch order details
                     const response = await axios.get(`${API_URL}/api/stripe/orders/${orderId}`);
                     if (response.data.success) {
                         setOrder(response.data.order);
@@ -52,7 +52,7 @@ const CheckoutSuccess = () => {
         };
 
         verifyPayment();
-    }, [sessionId, orderId, isCod, isCard, clearCart]);
+    }, [sessionId, orderId, isPaypal, isCard, clearCart]);
 
     if (loading) {
         return (
@@ -91,16 +91,18 @@ const CheckoutSuccess = () => {
             </h1>
             
             <p className={`mb-8 max-w-md ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                {order?.payment_method === 'cod' 
-                    ? "Your order has been placed! Please have cash ready when our delivery team arrives."
+                {order?.payment_method === 'paypal' 
+                    ? "Your PayPal payment was successful! We've received your order and will process it shortly."
                     : "Your payment was successful. We've received your order and will process it shortly."
                 }
             </p>
 
-            {order?.payment_method === 'cod' && (
-                <div className={`flex items-center gap-2 mb-6 px-4 py-2 rounded-lg ${isDark ? 'bg-orange-500/10 text-orange-400' : 'bg-orange-100 text-orange-600'}`}>
-                    <Truck size={20} />
-                    <span className="text-sm font-medium">Cash on Delivery</span>
+            {order?.payment_method === 'paypal' && (
+                <div className={`flex items-center gap-2 mb-6 px-4 py-2 rounded-lg ${isDark ? 'bg-blue-500/10 text-blue-400' : 'bg-blue-100 text-blue-600'}`}>
+                    <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M7.076 21.337H2.47a.641.641 0 0 1-.633-.74L4.944.901C5.026.382 5.474 0 5.998 0h7.46c2.57 0 4.578.543 5.69 1.81 1.01 1.15 1.304 2.42 1.012 4.287-.023.143-.047.288-.077.437-.983 5.05-4.349 6.797-8.647 6.797h-2.19c-.524 0-.968.382-1.05.9l-1.12 7.106zm14.146-14.42a3.35 3.35 0 0 0-.607-.541c-.013.076-.026.175-.041.254-.93 4.778-4.005 7.201-9.138 7.201h-2.19a.563.563 0 0 0-.556.479l-1.187 7.527h-.506l-1.12 7.106a.339.339 0 0 0 .335.391h2.9c.436 0 .806-.317.875-.746l.798-5.063a.875.875 0 0 1 .87-.746h1.286c4.34 0 7.739-1.763 8.734-6.866.462-2.37.085-4.326-1.453-5.596z"/>
+                    </svg>
+                    <span className="text-sm font-medium">Paid with PayPal</span>
                 </div>
             )}
 

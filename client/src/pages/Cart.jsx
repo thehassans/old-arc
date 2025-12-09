@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Trash2, Plus, Minus, ArrowRight, Loader2, CreditCard, Truck } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Trash2, Plus, Minus, ArrowRight, Loader2, CreditCard } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useTheme } from '../context/ThemeContext';
@@ -7,75 +7,129 @@ import axios from 'axios';
 
 const API_URL = import.meta.env.VITE_API_URL || '';
 
+// PayPal Sandbox Client ID for testing
+const PAYPAL_CLIENT_ID = import.meta.env.VITE_PAYPAL_CLIENT_ID || 'sb';
+
 const Cart = () => {
     const { cartItems, updateQuantity, removeFromCart, getCartTotal, clearCart } = useCart();
     const { isDark } = useTheme();
     const navigate = useNavigate();
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
-    const [paymentMethod, setPaymentMethod] = useState('card'); // 'card' or 'cod'
-    const [codForm, setCodForm] = useState({
-        name: '',
-        email: '',
-        phone: '',
-        address: ''
-    });
+    const [paymentMethod, setPaymentMethod] = useState('card'); // 'card' or 'paypal'
+    const [paypalLoaded, setPaypalLoaded] = useState(false);
+    const paypalRef = useRef(null);
 
     const subtotal = getCartTotal();
     const shipping = subtotal > 80 ? 0 : 12;
     const total = subtotal + shipping;
 
+    // Load PayPal SDK
+    useEffect(() => {
+        if (paymentMethod === 'paypal' && !paypalLoaded && cartItems.length > 0) {
+            const script = document.createElement('script');
+            script.src = `https://www.paypal.com/sdk/js?client-id=${PAYPAL_CLIENT_ID}&currency=GBP`;
+            script.async = true;
+            script.onload = () => setPaypalLoaded(true);
+            document.body.appendChild(script);
+            
+            return () => {
+                // Cleanup if needed
+            };
+        }
+    }, [paymentMethod, paypalLoaded, cartItems.length]);
+
+    // Render PayPal buttons when SDK is loaded
+    useEffect(() => {
+        if (paypalLoaded && paymentMethod === 'paypal' && paypalRef.current && window.paypal) {
+            paypalRef.current.innerHTML = '';
+            
+            window.paypal.Buttons({
+                style: {
+                    layout: 'vertical',
+                    color: 'gold',
+                    shape: 'rect',
+                    label: 'paypal'
+                },
+                createOrder: (data, actions) => {
+                    return actions.order.create({
+                        purchase_units: [{
+                            amount: {
+                                value: total.toFixed(2),
+                                currency_code: 'GBP'
+                            },
+                            description: `Old Arcade Order - ${cartItems.length} items`
+                        }]
+                    });
+                },
+                onApprove: async (data, actions) => {
+                    setIsLoading(true);
+                    try {
+                        const details = await actions.order.capture();
+                        
+                        // Create order in our system
+                        const response = await axios.post(`${API_URL}/api/stripe/create-paypal-order`, {
+                            items: cartItems.map(item => ({
+                                id: item.id,
+                                title: item.title,
+                                price: item.price,
+                                quantity: item.quantity,
+                                image_url: item.image_url
+                            })),
+                            paypal_order_id: details.id,
+                            payer: details.payer,
+                            total_amount: total
+                        });
+
+                        if (response.data.success) {
+                            clearCart();
+                            navigate(`/checkout/success?order_id=${response.data.order.id}&paypal=true`);
+                        }
+                    } catch (err) {
+                        console.error('PayPal order error:', err);
+                        setError('Failed to process PayPal payment');
+                    } finally {
+                        setIsLoading(false);
+                    }
+                },
+                onError: (err) => {
+                    console.error('PayPal error:', err);
+                    setError('PayPal payment failed. Please try again.');
+                }
+            }).render(paypalRef.current);
+        }
+    }, [paypalLoaded, paymentMethod, total, cartItems, clearCart, navigate]);
+
     const handleCheckout = async () => {
+        if (paymentMethod === 'paypal') {
+            // PayPal handles its own checkout via buttons
+            return;
+        }
+
         setIsLoading(true);
         setError(null);
 
         try {
-            if (paymentMethod === 'card') {
-                // Stripe checkout
-                const response = await axios.post(`${API_URL}/api/stripe/create-checkout-session`, {
-                    items: cartItems.map(item => ({
-                        id: item.id,
-                        title: item.title,
-                        price: item.price,
-                        quantity: item.quantity,
-                        image_url: item.image_url
-                    }))
-                });
+            // Stripe checkout
+            const response = await axios.post(`${API_URL}/api/stripe/create-checkout-session`, {
+                items: cartItems.map(item => ({
+                    id: item.id,
+                    title: item.title,
+                    price: item.price,
+                    quantity: item.quantity,
+                    image_url: item.image_url
+                }))
+            });
 
-                // Handle demo order (when Stripe not configured)
-                if (response.data.demoOrder && response.data.order) {
-                    clearCart();
-                    navigate(`/checkout/success?order_id=${response.data.order.id}&card=true`);
-                    return;
-                }
+            // Handle demo order (when Stripe not configured)
+            if (response.data.demoOrder && response.data.order) {
+                clearCart();
+                navigate(`/checkout/success?order_id=${response.data.order.id}&card=true`);
+                return;
+            }
 
-                if (response.data.url) {
-                    window.location.href = response.data.url;
-                }
-            } else {
-                // Cash on Delivery
-                if (!codForm.name || !codForm.email || !codForm.phone || !codForm.address) {
-                    setError('Please fill in all delivery details');
-                    setIsLoading(false);
-                    return;
-                }
-
-                const response = await axios.post(`${API_URL}/api/stripe/create-cod-order`, {
-                    items: cartItems.map(item => ({
-                        id: item.id,
-                        title: item.title,
-                        price: item.price,
-                        quantity: item.quantity,
-                        image_url: item.image_url
-                    })),
-                    customer: codForm,
-                    total_amount: total
-                });
-
-                if (response.data.success) {
-                    clearCart();
-                    navigate(`/checkout/success?order_id=${response.data.order.id}&cod=true`);
-                }
+            if (response.data.url) {
+                window.location.href = response.data.url;
             }
         } catch (err) {
             console.error('Checkout error:', err);
@@ -162,50 +216,35 @@ const Cart = () => {
                                 </button>
                                 <button
                                     type="button"
-                                    onClick={() => setPaymentMethod('cod')}
+                                    onClick={() => setPaymentMethod('paypal')}
                                     className={`flex items-center justify-center gap-2 p-3 rounded-lg border transition-all ${
-                                        paymentMethod === 'cod'
+                                        paymentMethod === 'paypal'
                                             ? 'border-primary bg-primary/10 text-primary'
                                             : isDark ? 'border-white/10 text-gray-400 hover:border-white/20' : 'border-dark/10 text-gray-600 hover:border-dark/20'
                                     }`}
                                 >
-                                    <Truck size={18} />
-                                    <span className="text-sm font-medium">Cash on Delivery</span>
+                                    <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M7.076 21.337H2.47a.641.641 0 0 1-.633-.74L4.944.901C5.026.382 5.474 0 5.998 0h7.46c2.57 0 4.578.543 5.69 1.81 1.01 1.15 1.304 2.42 1.012 4.287-.023.143-.047.288-.077.437-.983 5.05-4.349 6.797-8.647 6.797h-2.19c-.524 0-.968.382-1.05.9l-1.12 7.106zm14.146-14.42a3.35 3.35 0 0 0-.607-.541c-.013.076-.026.175-.041.254-.93 4.778-4.005 7.201-9.138 7.201h-2.19a.563.563 0 0 0-.556.479l-1.187 7.527h-.506l-1.12 7.106a.339.339 0 0 0 .335.391h2.9c.436 0 .806-.317.875-.746l.798-5.063a.875.875 0 0 1 .87-.746h1.286c4.34 0 7.739-1.763 8.734-6.866.462-2.37.085-4.326-1.453-5.596z"/>
+                                    </svg>
+                                    <span className="text-sm font-medium">PayPal</span>
                                 </button>
                             </div>
                         </div>
 
-                        {/* COD Form */}
-                        {paymentMethod === 'cod' && (
-                            <div className="mb-6 space-y-3">
-                                <input
-                                    type="text"
-                                    placeholder="Full Name *"
-                                    value={codForm.name}
-                                    onChange={(e) => setCodForm({...codForm, name: e.target.value})}
-                                    className={`w-full px-4 py-3 rounded-lg border ${isDark ? 'bg-dark border-white/10 text-white placeholder-gray-500' : 'bg-white border-dark/10 text-dark placeholder-gray-400'}`}
-                                />
-                                <input
-                                    type="email"
-                                    placeholder="Email Address *"
-                                    value={codForm.email}
-                                    onChange={(e) => setCodForm({...codForm, email: e.target.value})}
-                                    className={`w-full px-4 py-3 rounded-lg border ${isDark ? 'bg-dark border-white/10 text-white placeholder-gray-500' : 'bg-white border-dark/10 text-dark placeholder-gray-400'}`}
-                                />
-                                <input
-                                    type="tel"
-                                    placeholder="Phone Number *"
-                                    value={codForm.phone}
-                                    onChange={(e) => setCodForm({...codForm, phone: e.target.value})}
-                                    className={`w-full px-4 py-3 rounded-lg border ${isDark ? 'bg-dark border-white/10 text-white placeholder-gray-500' : 'bg-white border-dark/10 text-dark placeholder-gray-400'}`}
-                                />
-                                <textarea
-                                    placeholder="Delivery Address *"
-                                    value={codForm.address}
-                                    onChange={(e) => setCodForm({...codForm, address: e.target.value})}
-                                    rows={3}
-                                    className={`w-full px-4 py-3 rounded-lg border resize-none ${isDark ? 'bg-dark border-white/10 text-white placeholder-gray-500' : 'bg-white border-dark/10 text-dark placeholder-gray-400'}`}
-                                />
+                        {/* PayPal Buttons */}
+                        {paymentMethod === 'paypal' && (
+                            <div className="mb-6">
+                                <div ref={paypalRef} className="min-h-[150px]">
+                                    {!paypalLoaded && (
+                                        <div className="flex items-center justify-center py-8">
+                                            <Loader2 size={24} className="animate-spin text-primary" />
+                                            <span className="ml-2 text-sm" style={{ color: isDark ? '#8b8b9e' : '#64748b' }}>Loading PayPal...</span>
+                                        </div>
+                                    )}
+                                </div>
+                                <p className={`mt-2 text-xs text-center ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+                                    PayPal Sandbox Mode (Testing)
+                                </p>
                             </div>
                         )}
 
@@ -215,28 +254,30 @@ const Cart = () => {
                             </div>
                         )}
 
-                        <button 
-                            onClick={handleCheckout}
-                            disabled={isLoading}
-                            className="w-full btn-primary flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                            {isLoading ? (
-                                <>
-                                    <Loader2 size={20} className="animate-spin" />
-                                    Processing...
-                                </>
-                            ) : (
-                                <>
-                                    {paymentMethod === 'cod' ? 'Place Order' : 'Proceed to Checkout'}
-                                    <ArrowRight size={20} />
-                                </>
-                            )}
-                        </button>
-                        
                         {paymentMethod === 'card' && (
-                            <p className={`mt-4 text-xs text-center ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
-                                Test card: 4242 4242 4242 4242
-                            </p>
+                            <>
+                                <button 
+                                    onClick={handleCheckout}
+                                    disabled={isLoading}
+                                    className="w-full btn-primary flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    {isLoading ? (
+                                        <>
+                                            <Loader2 size={20} className="animate-spin" />
+                                            Processing...
+                                        </>
+                                    ) : (
+                                        <>
+                                            Proceed to Checkout
+                                            <ArrowRight size={20} />
+                                        </>
+                                    )}
+                                </button>
+                                
+                                <p className={`mt-4 text-xs text-center ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+                                    Stripe Test Card: 4242 4242 4242 4242
+                                </p>
+                            </>
                         )}
                     </div>
                 </div>

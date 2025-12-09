@@ -163,31 +163,26 @@ router.get('/verify-session/:sessionId', async (req, res) => {
     }
 });
 
-// Create Cash on Delivery order
-router.post('/create-cod-order', async (req, res) => {
+// Create PayPal order (after PayPal payment is captured)
+router.post('/create-paypal-order', async (req, res) => {
     try {
-        const { items, customer, total_amount } = req.body;
+        const { items, paypal_order_id, payer, total_amount } = req.body;
 
         if (!items || items.length === 0) {
             return res.status(400).json({ error: 'No items provided' });
-        }
-
-        if (!customer || !customer.name || !customer.email || !customer.phone || !customer.address) {
-            return res.status(400).json({ error: 'Customer details are required' });
         }
 
         const order = {
             id: orderIdCounter++,
             order_number: `ORD-${String(orderIdCounter).padStart(4, '0')}`,
             stripe_session_id: null,
-            payment_method: 'cod',
-            customer_email: customer.email,
-            customer_name: customer.name,
-            customer_phone: customer.phone,
-            customer_address: customer.address,
+            paypal_order_id: paypal_order_id || null,
+            payment_method: 'paypal',
+            customer_email: payer?.email_address || 'paypal@customer.com',
+            customer_name: payer?.name?.given_name ? `${payer.name.given_name} ${payer.name.surname || ''}` : 'PayPal Customer',
             items: items,
             total_amount: total_amount,
-            status: 'Pending',
+            status: 'Processing',
             scheduled_date: null,
             scheduled_time: null,
             created_at: new Date().toISOString(),
@@ -197,7 +192,7 @@ router.post('/create-cod-order', async (req, res) => {
         orders.push(order);
         res.json({ success: true, order });
     } catch (error) {
-        console.error('COD order error:', error);
+        console.error('PayPal order error:', error);
         res.status(500).json({ error: error.message });
     }
 });
