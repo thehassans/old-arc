@@ -42,6 +42,13 @@ const Cart = () => {
                     }))
                 });
 
+                // Handle demo order (when Stripe not configured)
+                if (response.data.demoOrder && response.data.order) {
+                    clearCart();
+                    navigate(`/checkout/success?order_id=${response.data.order.id}&card=true`);
+                    return;
+                }
+
                 if (response.data.url) {
                     window.location.href = response.data.url;
                 }

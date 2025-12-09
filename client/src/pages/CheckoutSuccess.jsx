@@ -18,12 +18,13 @@ const CheckoutSuccess = () => {
     const sessionId = searchParams.get('session_id');
     const orderId = searchParams.get('order_id');
     const isCod = searchParams.get('cod') === 'true';
+    const isCard = searchParams.get('card') === 'true';
 
     useEffect(() => {
         const verifyPayment = async () => {
             try {
-                if (isCod && orderId) {
-                    // COD order - fetch order details
+                if ((isCod || isCard) && orderId) {
+                    // COD or demo card order - fetch order details
                     const response = await axios.get(`${API_URL}/api/stripe/orders/${orderId}`);
                     if (response.data.success) {
                         setOrder(response.data.order);
@@ -51,7 +52,7 @@ const CheckoutSuccess = () => {
         };
 
         verifyPayment();
-    }, [sessionId, orderId, isCod, clearCart]);
+    }, [sessionId, orderId, isCod, isCard, clearCart]);
 
     if (loading) {
         return (
