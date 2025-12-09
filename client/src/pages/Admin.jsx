@@ -147,7 +147,7 @@ const Admin = () => {
     // Settings state
     const [settings, setSettings] = useState({
         phone: '+447782260144',
-        email: 'hello@old-arcade.com',
+        email: 'support@old-arcade.com',
         address: '7 Llewellyn Close, Stourport-On-Severn, England, DY13 9RH',
         aboutUs: 'Your premium destination for retro gaming excellence. Authorized Amazon seller and official gaming distributor. Discover legendary consoles, timeless games, and elite accessories from Retro Arcade Co LTD.',
         facebook: 'https://facebook.com/oldarcade',

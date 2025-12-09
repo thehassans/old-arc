@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
@@ -17,6 +17,19 @@ import FAQ from './pages/FAQ';
 import Shipping from './pages/Shipping';
 import Privacy from './pages/Privacy';
 import CheckoutSuccess from './pages/CheckoutSuccess';
+import About from './pages/About';
+import TrackOrder from './pages/TrackOrder';
+
+// Scroll to top on route change
+function ScrollToTop() {
+  const { pathname } = useLocation();
+  
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+  
+  return null;
+}
 
 // Layout wrapper to conditionally show Navbar/Footer
 function Layout({ children }) {
@@ -46,6 +59,7 @@ function Layout({ children }) {
 function App() {
   return (
     <Router>
+      <ScrollToTop />
       <Layout>
         <Routes>
           <Route path="/" element={<Home />} />
@@ -60,6 +74,8 @@ function App() {
           <Route path="/faq" element={<FAQ />} />
           <Route path="/shipping" element={<Shipping />} />
           <Route path="/privacy" element={<Privacy />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/track-order" element={<TrackOrder />} />
           <Route path="/checkout/success" element={<CheckoutSuccess />} />
         </Routes>
       </Layout>

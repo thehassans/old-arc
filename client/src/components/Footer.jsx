@@ -20,7 +20,7 @@ const Footer = () => {
     // Default settings
     const defaultSettings = {
         phone: '+447782260144',
-        email: 'hello@old-arcade.com',
+        email: 'support@old-arcade.com',
         address: '7 Llewellyn Close, Stourport-On-Severn, England, DY13 9RH',
         aboutUs: 'Your premium destination for retro gaming excellence. Authorized Amazon seller and official gaming distributor. Discover legendary consoles, timeless games, and elite accessories from Retro Arcade Co LTD.',
         facebook: 'https://facebook.com/oldarcade',
@@ -123,7 +123,8 @@ const Footer = () => {
             { label: 'Contact Us', path: '/contact' },
             { label: 'FAQs', path: '/faq' },
             { label: 'Shipping & Returns', path: '/shipping' },
-            { label: 'Privacy Policy', path: '/privacy' },
+            { label: 'Track Order', path: '/track-order' },
+            { label: 'About Us', path: '/about' },
         ]
     };
 
@@ -182,17 +183,41 @@ const Footer = () => {
                         </p>
                         
                         {/* Company Badge */}
-                        <div 
-                            className="inline-flex items-center gap-2 px-3 py-2 rounded-lg mb-6"
-                            style={{ 
-                                background: 'linear-gradient(135deg, rgba(168,85,247,0.15) 0%, rgba(34,211,238,0.1) 100%)',
-                                border: `1px solid ${isDark ? 'rgba(168,85,247,0.3)' : 'rgba(168,85,247,0.2)'}`
-                            }}
-                        >
-                            <span className="text-xs font-bold" style={{ color: '#a855f7' }}>Retro Arcade Co LTD</span>
-                            <span className="text-xs px-2 py-0.5 rounded-full" style={{ backgroundColor: 'rgba(34,197,94,0.2)', color: '#22c55e' }}>
-                                Amazon Authorized
-                            </span>
+                        <div className="space-y-3 mb-6">
+                            <div 
+                                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg"
+                                style={{ 
+                                    background: 'linear-gradient(135deg, rgba(168,85,247,0.15) 0%, rgba(34,211,238,0.1) 100%)',
+                                    border: `1px solid ${isDark ? 'rgba(168,85,247,0.3)' : 'rgba(168,85,247,0.2)'}`
+                                }}
+                            >
+                                <span className="text-sm font-bold" style={{ color: '#a855f7' }}>Retro Arcade Co LTD</span>
+                            </div>
+                            
+                            {/* Amazon Authorized Badge */}
+                            <Link 
+                                to="/about"
+                                className="flex items-center gap-3 px-4 py-3 rounded-xl transition-all hover:scale-[1.02]"
+                                style={{ 
+                                    background: 'linear-gradient(135deg, #232F3E 0%, #131921 100%)',
+                                    border: '1px solid rgba(255,153,0,0.4)',
+                                    boxShadow: '0 4px 15px rgba(0,0,0,0.3)'
+                                }}
+                            >
+                                <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: '#ffffff' }}>
+                                    <svg viewBox="0 0 603 182" className="w-7 h-auto">
+                                        <path fill="#FF9900" d="M374.00,141.00 C338.79,167.80 287.23,182.00 243.39,182.00 C181.28,182.00 125.44,158.68 83.04,119.87 C79.76,116.89 82.68,112.82 86.61,115.18 C132.11,141.56 188.69,157.47 247.21,157.47 C286.47,157.47 329.57,149.47 369.08,132.84 C374.85,130.35 379.72,136.65 374.00,141.00 Z"/>
+                                        <path fill="#FF9900" d="M385.47,127.76 C381.05,122.08 355.17,125.13 343.45,126.52 C339.99,126.93 339.45,123.91 342.55,121.71 C363.26,107.02 397.75,111.21 401.54,115.95 C405.33,120.72 400.45,155.25 381.12,171.63 C378.24,174.10 375.49,172.82 376.78,169.64 C380.97,159.07 389.92,133.48 385.47,127.76 Z"/>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-sm font-bold text-white">Amazon Authorized</span>
+                                        <CheckCircle size={14} style={{ color: '#FF9900' }} />
+                                    </div>
+                                    <span className="text-xs" style={{ color: '#A0AEC0' }}>Official Seller</span>
+                                </div>
+                            </Link>
                         </div>
                         
                         {/* Social Links */}
@@ -333,39 +358,21 @@ const Footer = () => {
                                 Track Your Order
                             </h3>
                         </div>
-                        <p className="text-sm mb-4" style={{ color: isDark ? '#8b8b9e' : '#64748b' }}>
-                            Enter your order number to track your delivery status
+                        <p className="text-sm mb-6" style={{ color: isDark ? '#8b8b9e' : '#64748b' }}>
+                            Track your delivery status in real-time with our UK courier-style tracking
                         </p>
-                        <form onSubmit={handleTrackOrder} className="flex gap-3">
-                            <input
-                                type="text"
-                                value={trackingNumber}
-                                onChange={(e) => setTrackingNumber(e.target.value.toUpperCase())}
-                                placeholder="e.g. ORD-0001"
-                                className="flex-1 px-4 py-3 rounded-xl text-center font-medium"
-                                style={{
-                                    backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)',
-                                    border: `1px solid ${isDark ? 'rgba(168,85,247,0.2)' : 'rgba(0,0,0,0.1)'}`,
-                                    color: isDark ? '#ffffff' : '#0a0a0f'
-                                }}
-                            />
-                            <button
-                                type="submit"
-                                disabled={trackingLoading}
-                                className="px-6 py-3 rounded-xl font-semibold flex items-center gap-2 transition-all hover:scale-105"
-                                style={{
-                                    background: 'linear-gradient(135deg, #a855f7, #22d3ee)',
-                                    color: '#ffffff',
-                                    boxShadow: '0 4px 15px rgba(168,85,247,0.3)'
-                                }}
-                            >
-                                {trackingLoading ? <Loader2 size={18} className="animate-spin" /> : <Search size={18} />}
-                                Track
-                            </button>
-                        </form>
-                        {trackingError && (
-                            <p className="mt-3 text-sm" style={{ color: '#ef4444' }}>{trackingError}</p>
-                        )}
+                        <Link
+                            to="/track-order"
+                            className="inline-flex items-center gap-2 px-8 py-4 rounded-xl font-bold transition-all hover:scale-105"
+                            style={{
+                                background: 'linear-gradient(135deg, #a855f7, #22d3ee)',
+                                color: '#ffffff',
+                                boxShadow: '0 4px 15px rgba(168,85,247,0.3)'
+                            }}
+                        >
+                            <Search size={20} />
+                            Track My Order
+                        </Link>
                     </div>
                 </div>
 
