@@ -16,6 +16,7 @@ import Contact from './pages/Contact';
 import FAQ from './pages/FAQ';
 import Shipping from './pages/Shipping';
 import Privacy from './pages/Privacy';
+import CheckoutSuccess from './pages/CheckoutSuccess';
 
 // Layout wrapper to conditionally show Navbar/Footer
 function Layout({ children }) {
@@ -59,6 +60,7 @@ function App() {
           <Route path="/faq" element={<FAQ />} />
           <Route path="/shipping" element={<Shipping />} />
           <Route path="/privacy" element={<Privacy />} />
+          <Route path="/checkout/success" element={<CheckoutSuccess />} />
         </Routes>
       </Layout>
     </Router>

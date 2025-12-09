@@ -1,16 +1,81 @@
-import React from 'react';
-import { Trash2, Plus, Minus, ArrowRight } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Trash2, Plus, Minus, ArrowRight, Loader2, CreditCard, Truck } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useTheme } from '../context/ThemeContext';
+import axios from 'axios';
+
+const API_URL = import.meta.env.VITE_API_URL || '';
 
 const Cart = () => {
-    const { cartItems, updateQuantity, removeFromCart, getCartTotal } = useCart();
+    const { cartItems, updateQuantity, removeFromCart, getCartTotal, clearCart } = useCart();
     const { isDark } = useTheme();
+    const navigate = useNavigate();
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState(null);
+    const [paymentMethod, setPaymentMethod] = useState('card'); // 'card' or 'cod'
+    const [codForm, setCodForm] = useState({
+        name: '',
+        email: '',
+        phone: '',
+        address: ''
+    });
 
     const subtotal = getCartTotal();
     const shipping = subtotal > 80 ? 0 : 12;
     const total = subtotal + shipping;
+
+    const handleCheckout = async () => {
+        setIsLoading(true);
+        setError(null);
+
+        try {
+            if (paymentMethod === 'card') {
+                // Stripe checkout
+                const response = await axios.post(`${API_URL}/api/stripe/create-checkout-session`, {
+                    items: cartItems.map(item => ({
+                        id: item.id,
+                        title: item.title,
+                        price: item.price,
+                        quantity: item.quantity,
+                        image_url: item.image_url
+                    }))
+                });
+
+                if (response.data.url) {
+                    window.location.href = response.data.url;
+                }
+            } else {
+                // Cash on Delivery
+                if (!codForm.name || !codForm.email || !codForm.phone || !codForm.address) {
+                    setError('Please fill in all delivery details');
+                    setIsLoading(false);
+                    return;
+                }
+
+                const response = await axios.post(`${API_URL}/api/stripe/create-cod-order`, {
+                    items: cartItems.map(item => ({
+                        id: item.id,
+                        title: item.title,
+                        price: item.price,
+                        quantity: item.quantity,
+                        image_url: item.image_url
+                    })),
+                    customer: codForm,
+                    total_amount: total
+                });
+
+                if (response.data.success) {
+                    clearCart();
+                    navigate(`/checkout/success?order_id=${response.data.order.id}&cod=true`);
+                }
+            }
+        } catch (err) {
+            console.error('Checkout error:', err);
+            setError(err.response?.data?.error || 'Failed to place order. Please try again.');
+            setIsLoading(false);
+        }
+    };
 
     if (cartItems.length === 0) {
         return (
@@ -72,10 +137,100 @@ const Cart = () => {
                             </div>
                         </div>
 
-                        <button className="w-full btn-primary flex items-center justify-center gap-2">
-                            Proceed to Checkout
-                            <ArrowRight size={20} />
+                        {/* Payment Method Selection */}
+                        <div className="mb-6">
+                            <p className={`text-sm font-medium mb-3 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Payment Method</p>
+                            <div className="grid grid-cols-2 gap-3">
+                                <button
+                                    type="button"
+                                    onClick={() => setPaymentMethod('card')}
+                                    className={`flex items-center justify-center gap-2 p-3 rounded-lg border transition-all ${
+                                        paymentMethod === 'card'
+                                            ? 'border-primary bg-primary/10 text-primary'
+                                            : isDark ? 'border-white/10 text-gray-400 hover:border-white/20' : 'border-dark/10 text-gray-600 hover:border-dark/20'
+                                    }`}
+                                >
+                                    <CreditCard size={18} />
+                                    <span className="text-sm font-medium">Card</span>
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setPaymentMethod('cod')}
+                                    className={`flex items-center justify-center gap-2 p-3 rounded-lg border transition-all ${
+                                        paymentMethod === 'cod'
+                                            ? 'border-primary bg-primary/10 text-primary'
+                                            : isDark ? 'border-white/10 text-gray-400 hover:border-white/20' : 'border-dark/10 text-gray-600 hover:border-dark/20'
+                                    }`}
+                                >
+                                    <Truck size={18} />
+                                    <span className="text-sm font-medium">Cash on Delivery</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* COD Form */}
+                        {paymentMethod === 'cod' && (
+                            <div className="mb-6 space-y-3">
+                                <input
+                                    type="text"
+                                    placeholder="Full Name *"
+                                    value={codForm.name}
+                                    onChange={(e) => setCodForm({...codForm, name: e.target.value})}
+                                    className={`w-full px-4 py-3 rounded-lg border ${isDark ? 'bg-dark border-white/10 text-white placeholder-gray-500' : 'bg-white border-dark/10 text-dark placeholder-gray-400'}`}
+                                />
+                                <input
+                                    type="email"
+                                    placeholder="Email Address *"
+                                    value={codForm.email}
+                                    onChange={(e) => setCodForm({...codForm, email: e.target.value})}
+                                    className={`w-full px-4 py-3 rounded-lg border ${isDark ? 'bg-dark border-white/10 text-white placeholder-gray-500' : 'bg-white border-dark/10 text-dark placeholder-gray-400'}`}
+                                />
+                                <input
+                                    type="tel"
+                                    placeholder="Phone Number *"
+                                    value={codForm.phone}
+                                    onChange={(e) => setCodForm({...codForm, phone: e.target.value})}
+                                    className={`w-full px-4 py-3 rounded-lg border ${isDark ? 'bg-dark border-white/10 text-white placeholder-gray-500' : 'bg-white border-dark/10 text-dark placeholder-gray-400'}`}
+                                />
+                                <textarea
+                                    placeholder="Delivery Address *"
+                                    value={codForm.address}
+                                    onChange={(e) => setCodForm({...codForm, address: e.target.value})}
+                                    rows={3}
+                                    className={`w-full px-4 py-3 rounded-lg border resize-none ${isDark ? 'bg-dark border-white/10 text-white placeholder-gray-500' : 'bg-white border-dark/10 text-dark placeholder-gray-400'}`}
+                                />
+                            </div>
+                        )}
+
+                        {error && (
+                            <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-500 text-sm">
+                                {error}
+                            </div>
+                        )}
+
+                        <button 
+                            onClick={handleCheckout}
+                            disabled={isLoading}
+                            className="w-full btn-primary flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            {isLoading ? (
+                                <>
+                                    <Loader2 size={20} className="animate-spin" />
+                                    Processing...
+                                </>
+                            ) : (
+                                <>
+                                    {paymentMethod === 'cod' ? 'Place Order' : 'Proceed to Checkout'}
+                                    <ArrowRight size={20} />
+                                </>
+                            )}
                         </button>
+                        
+                        {paymentMethod === 'card' && (
+                            <p className={`mt-4 text-xs text-center ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+                                Test card: 4242 4242 4242 4242
+                            </p>
+                        )}
                     </div>
                 </div>
             </div>

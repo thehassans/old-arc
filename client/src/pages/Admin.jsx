@@ -1,13 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LayoutDashboard, ShoppingBag, MessageSquare, Users, Settings, LogOut, Save, Phone, Mail, MapPin, Facebook, Twitter, Instagram, Youtube, Menu, X } from 'lucide-react';
+import { LayoutDashboard, ShoppingBag, MessageSquare, Users, Settings, LogOut, Save, Phone, Mail, MapPin, Facebook, Twitter, Instagram, Youtube, Menu, X, Loader2, RefreshCw, Calendar, Clock, Edit2, Check, XCircle } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
+import axios from 'axios';
+
+const API_URL = import.meta.env.VITE_API_URL || '';
 
 const Admin = () => {
     const [activeTab, setActiveTab] = useState('dashboard');
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const { isDark } = useTheme();
     const navigate = useNavigate();
+
+    // Orders state
+    const [orders, setOrders] = useState([]);
+    const [ordersLoading, setOrdersLoading] = useState(false);
+    const [editingOrder, setEditingOrder] = useState(null);
+    const [editForm, setEditForm] = useState({ status: '', scheduled_date: '', scheduled_time: '' });
 
     // Check authentication
     useEffect(() => {
@@ -16,6 +25,49 @@ const Admin = () => {
             navigate('/login');
         }
     }, [navigate]);
+
+    // Fetch orders when orders tab is active
+    useEffect(() => {
+        if (activeTab === 'orders' || activeTab === 'dashboard') {
+            fetchOrders();
+        }
+    }, [activeTab]);
+
+    const fetchOrders = async () => {
+        setOrdersLoading(true);
+        try {
+            const response = await axios.get(`${API_URL}/api/stripe/orders`);
+            setOrders(response.data);
+        } catch (error) {
+            console.error('Failed to fetch orders:', error);
+        } finally {
+            setOrdersLoading(false);
+        }
+    };
+
+    const handleEditOrder = (order) => {
+        setEditingOrder(order.id);
+        setEditForm({
+            status: order.status,
+            scheduled_date: order.scheduled_date || '',
+            scheduled_time: order.scheduled_time || ''
+        });
+    };
+
+    const handleSaveOrder = async (orderId) => {
+        try {
+            await axios.put(`${API_URL}/api/stripe/orders/${orderId}`, editForm);
+            setEditingOrder(null);
+            fetchOrders();
+        } catch (error) {
+            console.error('Failed to update order:', error);
+        }
+    };
+
+    const handleCancelEdit = () => {
+        setEditingOrder(null);
+        setEditForm({ status: '', scheduled_date: '', scheduled_time: '' });
+    };
 
     // Settings state
     const [settings, setSettings] = useState({
@@ -30,21 +82,16 @@ const Admin = () => {
 
     const [saved, setSaved] = useState(false);
 
-    // Stats data
+    // Stats data - computed from real orders
     const stats = {
-        orders: 124,
-        revenue: 15490.50,
+        orders: orders.length,
+        revenue: orders.reduce((sum, order) => sum + (order.total_amount || 0), 0),
         users: 850,
         queries: 12
     };
 
-    const recentOrders = [
-        { id: '#ORD-001', user: 'John Doe', email: 'john@email.com', total: 249.99, status: 'Processing', date: '2024-12-03', items: 3 },
-        { id: '#ORD-002', user: 'Jane Smith', email: 'jane@email.com', total: 89.99, status: 'Shipped', date: '2024-12-02', items: 1 },
-        { id: '#ORD-003', user: 'Mike Johnson', email: 'mike@email.com', total: 129.99, status: 'Delivered', date: '2024-12-01', items: 2 },
-        { id: '#ORD-004', user: 'Sarah Williams', email: 'sarah@email.com', total: 199.99, status: 'Processing', date: '2024-12-03', items: 2 },
-        { id: '#ORD-005', user: 'Tom Brown', email: 'tom@email.com', total: 59.99, status: 'Pending', date: '2024-12-04', items: 1 },
-    ];
+    // Status options for dropdown
+    const statusOptions = ['Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled'];
 
     const queries = [
         { id: 1, name: 'Alice Brown', email: 'alice@example.com', message: 'When will the Retro Console X be back in stock?', date: '2 hrs ago', status: 'new' },
@@ -199,22 +246,35 @@ const Admin = () => {
                                 backgroundColor: isDark ? '#12121a' : '#ffffff',
                                 border: `1px solid ${isDark ? 'rgba(168,85,247,0.1)' : 'rgba(0,0,0,0.1)'}` 
                             }}>
-                                <h3 className="text-xl font-bold mb-6" style={{ color: isDark ? '#ffffff' : '#0a0a0f' }}>Recent Orders</h3>
+                                <div className="flex items-center justify-between mb-6">
+                                    <h3 className="text-xl font-bold" style={{ color: isDark ? '#ffffff' : '#0a0a0f' }}>Recent Orders</h3>
+                                    <button onClick={fetchOrders} className="p-2 rounded-lg hover:bg-primary/10 transition-colors" style={{ color: '#a855f7' }}>
+                                        <RefreshCw size={18} className={ordersLoading ? 'animate-spin' : ''} />
+                                    </button>
+                                </div>
                                 <div className="space-y-4">
-                                    {recentOrders.map(order => (
-                                        <div key={order.id} className="flex items-center justify-between p-4 rounded-lg" style={{ backgroundColor: isDark ? '#0a0a0f' : '#f8fafc' }}>
-                                            <div>
-                                                <div className="font-bold" style={{ color: isDark ? '#ffffff' : '#0a0a0f' }}>{order.id}</div>
-                                                <div className="text-sm" style={{ color: isDark ? '#8b8b9e' : '#64748b' }}>{order.user}</div>
-                                            </div>
-                                            <div className="text-right">
-                                                <div className="font-bold" style={{ color: isDark ? '#ffffff' : '#0a0a0f' }}>${order.total}</div>
-                                                <div className="text-sm" style={{ 
-                                                    color: order.status === 'Delivered' ? '#22c55e' : order.status === 'Shipped' ? '#3b82f6' : '#eab308' 
-                                                }}>{order.status}</div>
-                                            </div>
+                                    {ordersLoading ? (
+                                        <div className="flex justify-center py-8">
+                                            <Loader2 size={24} className="animate-spin text-primary" />
                                         </div>
-                                    ))}
+                                    ) : orders.length === 0 ? (
+                                        <p className="text-center py-8" style={{ color: isDark ? '#8b8b9e' : '#64748b' }}>No orders yet</p>
+                                    ) : (
+                                        orders.slice(0, 5).map(order => (
+                                            <div key={order.id} className="flex items-center justify-between p-4 rounded-lg" style={{ backgroundColor: isDark ? '#0a0a0f' : '#f8fafc' }}>
+                                                <div>
+                                                    <div className="font-bold" style={{ color: isDark ? '#ffffff' : '#0a0a0f' }}>{order.order_number}</div>
+                                                    <div className="text-sm" style={{ color: isDark ? '#8b8b9e' : '#64748b' }}>{order.customer_name}</div>
+                                                </div>
+                                                <div className="text-right">
+                                                    <div className="font-bold" style={{ color: isDark ? '#ffffff' : '#0a0a0f' }}>£{order.total_amount?.toFixed(2)}</div>
+                                                    <div className="text-sm" style={{ 
+                                                        color: order.status === 'Delivered' ? '#22c55e' : order.status === 'Shipped' ? '#3b82f6' : '#eab308' 
+                                                    }}>{order.status}</div>
+                                                </div>
+                                            </div>
+                                        ))
+                                    )}
                                 </div>
                             </div>
 
@@ -242,43 +302,131 @@ const Admin = () => {
                 {/* Orders Tab */}
                 {activeTab === 'orders' && (
                     <div className="space-y-6">
-                        <h1 className="text-3xl font-bold" style={{ color: isDark ? '#ffffff' : '#0a0a0f' }}>Orders</h1>
-                        <div className="rounded-xl overflow-hidden" style={cardStyle}>
-                            <div className="overflow-x-auto">
-                                <table className="w-full">
-                                    <thead>
-                                        <tr style={{ backgroundColor: isDark ? '#0a0a0f' : '#f8fafc' }}>
-                                            <th className="text-left p-4 font-semibold" style={{ color: isDark ? '#8b8b9e' : '#64748b' }}>Order ID</th>
-                                            <th className="text-left p-4 font-semibold" style={{ color: isDark ? '#8b8b9e' : '#64748b' }}>Customer</th>
-                                            <th className="text-left p-4 font-semibold" style={{ color: isDark ? '#8b8b9e' : '#64748b' }}>Items</th>
-                                            <th className="text-left p-4 font-semibold" style={{ color: isDark ? '#8b8b9e' : '#64748b' }}>Total</th>
-                                            <th className="text-left p-4 font-semibold" style={{ color: isDark ? '#8b8b9e' : '#64748b' }}>Status</th>
-                                            <th className="text-left p-4 font-semibold" style={{ color: isDark ? '#8b8b9e' : '#64748b' }}>Date</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {recentOrders.map(order => (
-                                            <tr key={order.id} style={{ borderTop: `1px solid ${isDark ? 'rgba(168,85,247,0.1)' : 'rgba(0,0,0,0.05)'}` }}>
-                                                <td className="p-4 font-medium" style={{ color: '#a855f7' }}>{order.id}</td>
-                                                <td className="p-4">
-                                                    <div style={{ color: isDark ? '#ffffff' : '#0a0a0f' }}>{order.user}</div>
-                                                    <div className="text-sm" style={{ color: isDark ? '#8b8b9e' : '#64748b' }}>{order.email}</div>
-                                                </td>
-                                                <td className="p-4" style={{ color: isDark ? '#ffffff' : '#0a0a0f' }}>{order.items}</td>
-                                                <td className="p-4 font-semibold" style={{ color: isDark ? '#ffffff' : '#0a0a0f' }}>£{order.total}</td>
-                                                <td className="p-4">
-                                                    <span className="px-3 py-1 rounded-full text-sm font-medium" style={{
-                                                        backgroundColor: order.status === 'Delivered' ? 'rgba(34,197,94,0.1)' : order.status === 'Shipped' ? 'rgba(59,130,246,0.1)' : order.status === 'Processing' ? 'rgba(234,179,8,0.1)' : 'rgba(168,85,247,0.1)',
-                                                        color: order.status === 'Delivered' ? '#22c55e' : order.status === 'Shipped' ? '#3b82f6' : order.status === 'Processing' ? '#eab308' : '#a855f7'
-                                                    }}>{order.status}</span>
-                                                </td>
-                                                <td className="p-4" style={{ color: isDark ? '#8b8b9e' : '#64748b' }}>{order.date}</td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
+                        <div className="flex items-center justify-between">
+                            <h1 className="text-3xl font-bold" style={{ color: isDark ? '#ffffff' : '#0a0a0f' }}>Orders</h1>
+                            <button onClick={fetchOrders} className="flex items-center gap-2 px-4 py-2 rounded-lg transition-colors" style={{ backgroundColor: '#a855f7', color: '#ffffff' }}>
+                                <RefreshCw size={18} className={ordersLoading ? 'animate-spin' : ''} />
+                                Refresh
+                            </button>
                         </div>
+                        
+                        {ordersLoading ? (
+                            <div className="flex justify-center py-16">
+                                <Loader2 size={32} className="animate-spin text-primary" />
+                            </div>
+                        ) : orders.length === 0 ? (
+                            <div className="rounded-xl p-12 text-center" style={cardStyle}>
+                                <ShoppingBag size={48} className="mx-auto mb-4 opacity-50" style={{ color: isDark ? '#8b8b9e' : '#64748b' }} />
+                                <p style={{ color: isDark ? '#8b8b9e' : '#64748b' }}>No orders yet. Orders will appear here after customers complete checkout.</p>
+                            </div>
+                        ) : (
+                            <div className="rounded-xl overflow-hidden" style={cardStyle}>
+                                <div className="overflow-x-auto">
+                                    <table className="w-full">
+                                        <thead>
+                                            <tr style={{ backgroundColor: isDark ? '#0a0a0f' : '#f8fafc' }}>
+                                                <th className="text-left p-4 font-semibold" style={{ color: isDark ? '#8b8b9e' : '#64748b' }}>Order ID</th>
+                                                <th className="text-left p-4 font-semibold" style={{ color: isDark ? '#8b8b9e' : '#64748b' }}>Customer</th>
+                                                <th className="text-left p-4 font-semibold" style={{ color: isDark ? '#8b8b9e' : '#64748b' }}>Items</th>
+                                                <th className="text-left p-4 font-semibold" style={{ color: isDark ? '#8b8b9e' : '#64748b' }}>Total</th>
+                                                <th className="text-left p-4 font-semibold" style={{ color: isDark ? '#8b8b9e' : '#64748b' }}>Status</th>
+                                                <th className="text-left p-4 font-semibold" style={{ color: isDark ? '#8b8b9e' : '#64748b' }}>Scheduled</th>
+                                                <th className="text-left p-4 font-semibold" style={{ color: isDark ? '#8b8b9e' : '#64748b' }}>Date</th>
+                                                <th className="text-left p-4 font-semibold" style={{ color: isDark ? '#8b8b9e' : '#64748b' }}>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {orders.map(order => (
+                                                <tr key={order.id} style={{ borderTop: `1px solid ${isDark ? 'rgba(168,85,247,0.1)' : 'rgba(0,0,0,0.05)'}` }}>
+                                                    <td className="p-4 font-medium" style={{ color: '#a855f7' }}>{order.order_number}</td>
+                                                    <td className="p-4">
+                                                        <div style={{ color: isDark ? '#ffffff' : '#0a0a0f' }}>{order.customer_name}</div>
+                                                        <div className="text-sm" style={{ color: isDark ? '#8b8b9e' : '#64748b' }}>{order.customer_email}</div>
+                                                    </td>
+                                                    <td className="p-4" style={{ color: isDark ? '#ffffff' : '#0a0a0f' }}>{order.items?.length || 0}</td>
+                                                    <td className="p-4 font-semibold" style={{ color: isDark ? '#ffffff' : '#0a0a0f' }}>£{order.total_amount?.toFixed(2)}</td>
+                                                    <td className="p-4">
+                                                        {editingOrder === order.id ? (
+                                                            <select
+                                                                value={editForm.status}
+                                                                onChange={(e) => setEditForm({...editForm, status: e.target.value})}
+                                                                className="px-2 py-1 rounded text-sm"
+                                                                style={inputStyle}
+                                                            >
+                                                                {statusOptions.map(status => (
+                                                                    <option key={status} value={status}>{status}</option>
+                                                                ))}
+                                                            </select>
+                                                        ) : (
+                                                            <span className="px-3 py-1 rounded-full text-sm font-medium" style={{
+                                                                backgroundColor: order.status === 'Delivered' ? 'rgba(34,197,94,0.1)' : order.status === 'Shipped' ? 'rgba(59,130,246,0.1)' : order.status === 'Processing' ? 'rgba(234,179,8,0.1)' : order.status === 'Cancelled' ? 'rgba(239,68,68,0.1)' : 'rgba(168,85,247,0.1)',
+                                                                color: order.status === 'Delivered' ? '#22c55e' : order.status === 'Shipped' ? '#3b82f6' : order.status === 'Processing' ? '#eab308' : order.status === 'Cancelled' ? '#ef4444' : '#a855f7'
+                                                            }}>{order.status}</span>
+                                                        )}
+                                                    </td>
+                                                    <td className="p-4">
+                                                        {editingOrder === order.id ? (
+                                                            <div className="flex flex-col gap-1">
+                                                                <input
+                                                                    type="date"
+                                                                    value={editForm.scheduled_date}
+                                                                    onChange={(e) => setEditForm({...editForm, scheduled_date: e.target.value})}
+                                                                    className="px-2 py-1 rounded text-sm"
+                                                                    style={inputStyle}
+                                                                />
+                                                                <input
+                                                                    type="time"
+                                                                    value={editForm.scheduled_time}
+                                                                    onChange={(e) => setEditForm({...editForm, scheduled_time: e.target.value})}
+                                                                    className="px-2 py-1 rounded text-sm"
+                                                                    style={inputStyle}
+                                                                />
+                                                            </div>
+                                                        ) : (
+                                                            <div style={{ color: isDark ? '#8b8b9e' : '#64748b' }}>
+                                                                {order.scheduled_date ? (
+                                                                    <div className="flex items-center gap-1">
+                                                                        <Calendar size={14} />
+                                                                        {order.scheduled_date}
+                                                                        {order.scheduled_time && (
+                                                                            <span className="ml-2 flex items-center gap-1">
+                                                                                <Clock size={14} />
+                                                                                {order.scheduled_time}
+                                                                            </span>
+                                                                        )}
+                                                                    </div>
+                                                                ) : (
+                                                                    <span className="text-sm opacity-50">Not scheduled</span>
+                                                                )}
+                                                            </div>
+                                                        )}
+                                                    </td>
+                                                    <td className="p-4" style={{ color: isDark ? '#8b8b9e' : '#64748b' }}>
+                                                        {new Date(order.created_at).toLocaleDateString()}
+                                                    </td>
+                                                    <td className="p-4">
+                                                        {editingOrder === order.id ? (
+                                                            <div className="flex items-center gap-2">
+                                                                <button onClick={() => handleSaveOrder(order.id)} className="p-2 rounded-lg hover:bg-green-500/10 transition-colors" style={{ color: '#22c55e' }}>
+                                                                    <Check size={18} />
+                                                                </button>
+                                                                <button onClick={handleCancelEdit} className="p-2 rounded-lg hover:bg-red-500/10 transition-colors" style={{ color: '#ef4444' }}>
+                                                                    <XCircle size={18} />
+                                                                </button>
+                                                            </div>
+                                                        ) : (
+                                                            <button onClick={() => handleEditOrder(order)} className="p-2 rounded-lg hover:bg-primary/10 transition-colors" style={{ color: '#a855f7' }}>
+                                                                <Edit2 size={18} />
+                                                            </button>
+                                                        )}
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 )}
 

@@ -1,15 +1,33 @@
+require('dotenv').config();
 const express = require('express');
+const cors = require('cors');
 const path = require('path');
+const stripeRoutes = require('./routes/stripe');
 
 const app = express();
 
+// CORS configuration
+app.use(cors({
+    origin: process.env.CLIENT_URL || '*',
+    credentials: true
+}));
+
+// Stripe webhook needs raw body - must come before json parser
+app.use('/api/stripe/webhook', express.raw({ type: 'application/json' }));
+
+// Parse JSON bodies for other routes
+app.use(express.json());
+
+// API routes
+app.use('/api/stripe', stripeRoutes);
+
+// Health check
+app.get('/api/health', (req, res) => {
+    res.json({ status: 'OK', stripe: !!process.env.STRIPE_SECRET_KEY });
+});
+
 // Serve static files
 app.use(express.static(path.join(__dirname, 'public')));
-
-// API endpoint
-app.get('/api/health', (req, res) => {
-    res.json({ status: 'OK' });
-});
 
 // SPA fallback
 app.get('*', (req, res) => {
@@ -20,5 +38,8 @@ app.get('*', (req, res) => {
 if (typeof(PhusionPassenger) !== 'undefined') {
     app.listen('passenger');
 } else {
-    app.listen(process.env.PORT || 3000)
+    const PORT = process.env.PORT || 3000;
+    app.listen(PORT, () => {
+        console.log(`Server running on port ${PORT}`);
+    });
 }
