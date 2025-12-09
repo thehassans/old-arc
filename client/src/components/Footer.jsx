@@ -194,31 +194,43 @@ const Footer = () => {
                                 <span className="text-sm font-bold" style={{ color: '#a855f7' }}>Retro Arcade Co LTD</span>
                             </div>
                             
-                            {/* Amazon Authorized Badge - Premium */}
+                            {/* Amazon Authorized Badge - Ultra Premium */}
                             <Link 
                                 to="/about"
-                                className="flex items-center gap-3 px-4 py-3 rounded-xl transition-all hover:scale-[1.02]"
+                                className="flex items-center gap-4 px-5 py-4 rounded-2xl transition-all hover:scale-[1.03] group"
                                 style={{ 
-                                    background: 'linear-gradient(135deg, #232F3E 0%, #131921 100%)',
-                                    border: '1px solid rgba(255,153,0,0.5)',
-                                    boxShadow: '0 4px 20px rgba(0,0,0,0.4)'
+                                    background: 'linear-gradient(145deg, #232F3E 0%, #131A21 50%, #0F1318 100%)',
+                                    border: '2px solid rgba(255,153,0,0.6)',
+                                    boxShadow: '0 8px 32px rgba(0,0,0,0.5), 0 0 20px rgba(255,153,0,0.15), inset 0 1px 0 rgba(255,255,255,0.05)'
                                 }}
                             >
-                                <div className="w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0 p-1.5" style={{ backgroundColor: '#ffffff' }}>
-                                    <svg viewBox="0 0 100 30" className="w-full h-auto">
-                                        <path fill="#232F3E" d="M25.5,17.2c0,0.7,0.1,1.3,0.2,1.7c0.2,0.4,0.4,0.9,0.7,1.4c0.1,0.2,0.2,0.3,0.2,0.4c0,0.2-0.1,0.3-0.3,0.5l-1.1,0.7c-0.1,0.1-0.3,0.1-0.4,0.1c-0.2,0-0.3-0.1-0.5-0.3c-0.3-0.3-0.5-0.7-0.7-1c-0.2-0.4-0.4-0.8-0.6-1.3c-1.6,1.9-3.6,2.8-6,2.8c-1.7,0-3.1-0.5-4.1-1.5c-1-1-1.5-2.3-1.5-3.9c0-1.7,0.6-3.1,1.8-4.2c1.2-1.1,2.9-1.6,4.9-1.6c0.7,0,1.4,0.1,2.1,0.2c0.7,0.1,1.5,0.3,2.3,0.5v-1.5c0-1.5-0.3-2.6-0.9-3.2c-0.6-0.6-1.7-0.9-3.2-0.9c-0.7,0-1.4,0.1-2.1,0.3c-0.7,0.2-1.4,0.4-2.1,0.7c-0.3,0.1-0.5,0.2-0.6,0.2c-0.1,0-0.2,0-0.3,0c-0.2,0-0.3-0.2-0.3-0.5V5.4c0-0.3,0-0.5,0.1-0.6c0.1-0.1,0.2-0.2,0.5-0.4c0.7-0.3,1.5-0.6,2.5-0.9c1-0.2,2-0.4,3.2-0.4c2.4,0,4.2,0.6,5.3,1.7c1.1,1.1,1.6,2.8,1.6,5.1V17.2z M19.5,19.1c0.7,0,1.3-0.1,2.1-0.4c0.7-0.3,1.3-0.7,1.8-1.3c0.3-0.4,0.5-0.8,0.6-1.3c0.1-0.5,0.2-1.1,0.2-1.8v-0.9c-0.6-0.2-1.2-0.3-1.8-0.4c-0.6-0.1-1.2-0.1-1.8-0.1c-1.4,0-2.4,0.3-3,0.8c-0.7,0.5-1,1.3-1,2.4c0,1,0.3,1.7,0.8,2.2C18,18.9,18.6,19.1,19.5,19.1z"/>
-                                        <path fill="#232F3E" d="M38.7,21.5c-0.2,0-0.4,0-0.5-0.1c-0.1-0.1-0.2-0.3-0.3-0.5l-5.6-18.4c-0.1-0.3-0.2-0.5-0.2-0.6c0-0.2,0.1-0.4,0.4-0.4h1.7c0.3,0,0.4,0,0.5,0.1c0.1,0.1,0.2,0.3,0.3,0.5l4,15.7l3.7-15.7c0.1-0.3,0.1-0.4,0.3-0.5c0.1-0.1,0.3-0.1,0.5-0.1h1.4c0.3,0,0.4,0,0.5,0.1c0.1,0.1,0.2,0.3,0.3,0.5l3.7,15.9l4.1-15.9c0.1-0.3,0.2-0.4,0.3-0.5c0.1-0.1,0.3-0.1,0.5-0.1h1.6c0.2,0,0.4,0.1,0.4,0.4c0,0.1,0,0.2,0,0.3c0,0.1-0.1,0.2-0.1,0.3l-5.7,18.4c-0.1,0.3-0.2,0.4-0.3,0.5c-0.1,0.1-0.3,0.1-0.5,0.1h-1.5c-0.3,0-0.4,0-0.5-0.1c-0.1-0.1-0.2-0.3-0.3-0.5l-3.6-15.3l-3.6,15.3c-0.1,0.3-0.1,0.4-0.3,0.5c-0.1,0.1-0.3,0.1-0.5,0.1H38.7z"/>
-                                        <path fill="#232F3E" d="M67.3,22.1c-1.3,0-2.6-0.2-3.8-0.5c-1.2-0.3-2.2-0.7-2.8-1.1c-0.4-0.2-0.6-0.5-0.7-0.7c-0.1-0.2-0.1-0.4-0.1-0.6v-0.9c0-0.4,0.1-0.5,0.4-0.5c0.1,0,0.2,0,0.3,0.1c0.1,0,0.2,0.1,0.4,0.2c0.5,0.3,1.1,0.5,1.8,0.6c0.7,0.2,1.3,0.2,2,0.2c1.1,0,1.9-0.2,2.5-0.6c0.6-0.4,0.9-1,0.9-1.7c0-0.5-0.2-0.9-0.5-1.3c-0.3-0.4-1-0.7-1.9-1l-2.8-0.9c-1.4-0.4-2.4-1.1-3-2c-0.6-0.9-0.9-1.8-0.9-2.9c0-0.8,0.2-1.6,0.5-2.2c0.3-0.7,0.8-1.2,1.4-1.7c0.6-0.5,1.3-0.8,2.1-1.1c0.8-0.2,1.7-0.4,2.6-0.4c0.5,0,0.9,0,1.4,0.1c0.5,0.1,0.9,0.2,1.4,0.3c0.4,0.1,0.8,0.3,1.2,0.4c0.4,0.2,0.6,0.3,0.8,0.5c0.3,0.2,0.4,0.3,0.5,0.5c0.1,0.2,0.1,0.4,0.1,0.7v0.8c0,0.4-0.1,0.5-0.4,0.5c-0.1,0-0.3-0.1-0.5-0.2c-0.9-0.4-1.9-0.6-3-0.6c-1,0-1.7,0.2-2.3,0.5c-0.5,0.3-0.8,0.9-0.8,1.6c0,0.5,0.2,1,0.5,1.3c0.4,0.4,1,0.7,2,1l2.7,0.9c1.4,0.4,2.3,1.1,2.9,1.9c0.6,0.8,0.8,1.8,0.8,2.8c0,0.9-0.2,1.6-0.5,2.3c-0.3,0.7-0.8,1.3-1.4,1.8c-0.6,0.5-1.3,0.9-2.2,1.1C69.3,22,68.3,22.1,67.3,22.1z"/>
-                                        <path fill="#FF9900" d="M72.5,26.3c-6.7,4.9-16.3,7.5-24.6,7.5c-11.7,0-22.1-4.3-30.1-11.5c-0.6-0.6-0.1-1.3,0.7-0.9c8.6,5,19.2,8,30.1,8c7.4,0,15.5-1.5,22.9-4.7C72.6,24.3,73.5,25.5,72.5,26.3z"/>
-                                        <path fill="#FF9900" d="M75,23.3c-0.9-1.1-5.7-0.5-7.9-0.3c-0.7,0.1-0.8-0.5-0.2-0.9c3.9-2.7,10.2-1.9,10.9-1c0.7,0.9-0.2,7.3-3.8,10.3c-0.6,0.5-1.1,0.2-0.9-0.4C74,28.6,75.9,24.4,75,23.3z"/>
-                                    </svg>
+                                <div 
+                                    className="w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0 p-2 transition-transform group-hover:scale-105" 
+                                    style={{ 
+                                        backgroundColor: '#ffffff',
+                                        boxShadow: '0 4px 12px rgba(0,0,0,0.3)'
+                                    }}
+                                >
+                                    <img 
+                                        src="https://upload.wikimedia.org/wikipedia/commons/a/a9/Amazon_logo.svg" 
+                                        alt="Amazon" 
+                                        className="w-full h-auto"
+                                    />
                                 </div>
                                 <div>
-                                    <div className="flex items-center gap-2">
-                                        <span className="text-sm font-bold text-white">Authorized Seller</span>
-                                        <CheckCircle size={14} style={{ color: '#FF9900' }} />
+                                    <div className="flex items-center gap-2 mb-1">
+                                        <span className="text-base font-bold text-white tracking-wide">Authorized Seller</span>
+                                        <div 
+                                            className="w-5 h-5 rounded-full flex items-center justify-center"
+                                            style={{ backgroundColor: '#FF9900' }}
+                                        >
+                                            <CheckCircle size={12} color="white" />
+                                        </div>
                                     </div>
-                                    <span className="text-xs" style={{ color: '#FF9900' }}>amazon.co.uk</span>
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-sm font-semibold" style={{ color: '#FF9900' }}>amazon.co.uk</span>
+                                        <span className="text-xs px-2 py-0.5 rounded-full" style={{ backgroundColor: 'rgba(255,153,0,0.2)', color: '#FF9900' }}>Verified</span>
+                                    </div>
                                 </div>
                             </Link>
                         </div>

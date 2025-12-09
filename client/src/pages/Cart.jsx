@@ -19,6 +19,33 @@ const Cart = () => {
     const [paymentMethod, setPaymentMethod] = useState('card'); // 'card' or 'paypal'
     const [paypalLoaded, setPaypalLoaded] = useState(false);
     const paypalRef = useRef(null);
+    const [cardForm, setCardForm] = useState({
+        cardNumber: '',
+        expiry: '',
+        cvv: '',
+        name: ''
+    });
+
+    // Format card number with spaces
+    const formatCardNumber = (value) => {
+        const v = value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
+        const matches = v.match(/\d{4,16}/g);
+        const match = matches && matches[0] || '';
+        const parts = [];
+        for (let i = 0, len = match.length; i < len; i += 4) {
+            parts.push(match.substring(i, i + 4));
+        }
+        return parts.length ? parts.join(' ') : v;
+    };
+
+    // Format expiry date
+    const formatExpiry = (value) => {
+        const v = value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
+        if (v.length >= 2) {
+            return v.substring(0, 2) + '/' + v.substring(2, 4);
+        }
+        return v;
+    };
 
     const subtotal = getCartTotal();
     const shipping = subtotal > 80 ? 0 : 12;
@@ -103,6 +130,20 @@ const Cart = () => {
     const handleCheckout = async () => {
         if (paymentMethod === 'paypal') {
             // PayPal handles its own checkout via buttons
+            return;
+        }
+
+        // Validate card form
+        if (!cardForm.cardNumber || cardForm.cardNumber.replace(/\s/g, '').length < 13) {
+            setError('Please enter a valid card number');
+            return;
+        }
+        if (!cardForm.expiry || cardForm.expiry.length < 5) {
+            setError('Please enter a valid expiry date');
+            return;
+        }
+        if (!cardForm.cvv || cardForm.cvv.length < 3) {
+            setError('Please enter a valid CVV');
             return;
         }
 
@@ -256,6 +297,91 @@ const Cart = () => {
 
                         {paymentMethod === 'card' && (
                             <>
+                                {/* Card Input Form */}
+                                <div className="space-y-4 mb-6">
+                                    <div>
+                                        <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                                            Card Number
+                                        </label>
+                                        <div className="relative">
+                                            <CreditCard size={18} className={`absolute left-3 top-1/2 -translate-y-1/2 ${isDark ? 'text-gray-500' : 'text-gray-400'}`} />
+                                            <input
+                                                type="text"
+                                                value={cardForm.cardNumber}
+                                                onChange={(e) => setCardForm({...cardForm, cardNumber: formatCardNumber(e.target.value)})}
+                                                maxLength={19}
+                                                placeholder="1234 5678 9012 3456"
+                                                className={`w-full pl-10 pr-4 py-3 rounded-lg border outline-none transition-all ${
+                                                    isDark 
+                                                        ? 'bg-dark border-white/10 text-white placeholder-gray-500 focus:border-primary' 
+                                                        : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-primary'
+                                                }`}
+                                            />
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                                                Expiry Date
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={cardForm.expiry}
+                                                onChange={(e) => setCardForm({...cardForm, expiry: formatExpiry(e.target.value)})}
+                                                maxLength={5}
+                                                placeholder="MM/YY"
+                                                className={`w-full px-4 py-3 rounded-lg border outline-none transition-all ${
+                                                    isDark 
+                                                        ? 'bg-dark border-white/10 text-white placeholder-gray-500 focus:border-primary' 
+                                                        : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-primary'
+                                                }`}
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                                                CVV
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={cardForm.cvv}
+                                                onChange={(e) => setCardForm({...cardForm, cvv: e.target.value.replace(/\D/g, '').slice(0, 4)})}
+                                                maxLength={4}
+                                                placeholder="123"
+                                                className={`w-full px-4 py-3 rounded-lg border outline-none transition-all ${
+                                                    isDark 
+                                                        ? 'bg-dark border-white/10 text-white placeholder-gray-500 focus:border-primary' 
+                                                        : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-primary'
+                                                }`}
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                                            Cardholder Name
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={cardForm.name}
+                                            onChange={(e) => setCardForm({...cardForm, name: e.target.value})}
+                                            placeholder="John Doe"
+                                            className={`w-full px-4 py-3 rounded-lg border outline-none transition-all ${
+                                                isDark 
+                                                    ? 'bg-dark border-white/10 text-white placeholder-gray-500 focus:border-primary' 
+                                                    : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-primary'
+                                            }`}
+                                        />
+                                    </div>
+                                    
+                                    <div className={`flex items-center gap-2 text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                                        </svg>
+                                        <span>Your payment info is secure and encrypted</span>
+                                    </div>
+                                </div>
+
                                 <button 
                                     onClick={handleCheckout}
                                     disabled={isLoading}
@@ -264,11 +390,11 @@ const Cart = () => {
                                     {isLoading ? (
                                         <>
                                             <Loader2 size={20} className="animate-spin" />
-                                            Processing...
+                                            Processing Payment...
                                         </>
                                     ) : (
                                         <>
-                                            Proceed to Checkout
+                                            Pay £{total.toFixed(2)}
                                             <ArrowRight size={20} />
                                         </>
                                     )}
