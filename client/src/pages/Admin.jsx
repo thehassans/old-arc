@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LayoutDashboard, ShoppingBag, MessageSquare, Users, Settings, LogOut, Save, Phone, Mail, MapPin, Facebook, Twitter, Instagram, Youtube, Menu, X, Loader2, RefreshCw, Calendar, Clock, Edit2, Check, XCircle, Package, Plus, Trash2, Image } from 'lucide-react';
+import { LayoutDashboard, ShoppingBag, MessageSquare, Users, Settings, LogOut, Save, Phone, Mail, MapPin, Facebook, Twitter, Instagram, Youtube, Menu, X, Loader2, RefreshCw, Calendar, Clock, Edit2, Check, XCircle, Package, Plus, Trash2, Image, Upload, Sparkles } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import axios from 'axios';
 
@@ -149,7 +149,7 @@ const Admin = () => {
         phone: '+447782260144',
         email: 'hello@old-arcade.com',
         address: '7 Llewellyn Close, Stourport-On-Severn, England, DY13 9RH',
-        aboutUs: 'Your premium destination for retro gaming excellence. Discover legendary consoles, timeless games, and elite accessories.',
+        aboutUs: 'Your premium destination for retro gaming excellence. Authorized Amazon seller and official gaming distributor. Discover legendary consoles, timeless games, and elite accessories from Retro Arcade Co LTD.',
         facebook: 'https://facebook.com/oldarcade',
         twitter: 'https://twitter.com/oldarcade',
         instagram: 'https://instagram.com/oldarcade',
@@ -445,99 +445,230 @@ const Admin = () => {
                     </div>
                 )}
 
-                {/* Product Modal */}
+                {/* Ultra Premium Product Modal */}
                 {showProductModal && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(0,0,0,0.7)' }}>
-                        <div className="w-full max-w-lg rounded-xl p-6" style={cardStyle}>
-                            <h2 className="text-2xl font-bold mb-6" style={{ color: isDark ? '#ffffff' : '#0a0a0f' }}>
-                                {editingProduct ? 'Edit Product' : 'Add New Product'}
-                            </h2>
-                            <div className="space-y-4">
-                                <div>
-                                    <label className="block text-sm font-medium mb-2" style={{ color: isDark ? '#8b8b9e' : '#64748b' }}>Title *</label>
-                                    <input
-                                        type="text"
-                                        value={productForm.title}
-                                        onChange={(e) => setProductForm({...productForm, title: e.target.value})}
-                                        className="w-full px-4 py-3 rounded-lg"
-                                        style={inputStyle}
-                                        placeholder="Product title"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium mb-2" style={{ color: isDark ? '#8b8b9e' : '#64748b' }}>Description</label>
-                                    <textarea
-                                        value={productForm.description}
-                                        onChange={(e) => setProductForm({...productForm, description: e.target.value})}
-                                        className="w-full px-4 py-3 rounded-lg resize-none"
-                                        style={inputStyle}
-                                        rows={3}
-                                        placeholder="Product description"
-                                    />
-                                </div>
-                                <div className="grid grid-cols-2 gap-4">
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(8px)' }}>
+                        <div 
+                            className="w-full max-w-2xl rounded-2xl overflow-hidden shadow-2xl"
+                            style={{
+                                background: isDark 
+                                    ? 'linear-gradient(145deg, #1a1a2e 0%, #12121a 100%)' 
+                                    : 'linear-gradient(145deg, #ffffff 0%, #f8fafc 100%)',
+                                border: `1px solid ${isDark ? 'rgba(168,85,247,0.3)' : 'rgba(168,85,247,0.2)'}`,
+                                boxShadow: '0 25px 50px -12px rgba(168,85,247,0.25)'
+                            }}
+                        >
+                            {/* Modal Header */}
+                            <div 
+                                className="px-8 py-6 flex items-center justify-between"
+                                style={{ 
+                                    background: 'linear-gradient(135deg, rgba(168,85,247,0.15) 0%, rgba(34,211,238,0.1) 100%)',
+                                    borderBottom: `1px solid ${isDark ? 'rgba(168,85,247,0.2)' : 'rgba(168,85,247,0.15)'}`
+                                }}
+                            >
+                                <div className="flex items-center gap-3">
+                                    <div 
+                                        className="w-12 h-12 rounded-xl flex items-center justify-center"
+                                        style={{ background: 'linear-gradient(135deg, #a855f7, #22d3ee)' }}
+                                    >
+                                        <Sparkles size={24} color="white" />
+                                    </div>
                                     <div>
-                                        <label className="block text-sm font-medium mb-2" style={{ color: isDark ? '#8b8b9e' : '#64748b' }}>Price (£) *</label>
+                                        <h2 className="text-2xl font-bold" style={{ color: isDark ? '#ffffff' : '#0a0a0f' }}>
+                                            {editingProduct ? 'Edit Product' : 'Add New Product'}
+                                        </h2>
+                                        <p className="text-sm" style={{ color: isDark ? '#8b8b9e' : '#64748b' }}>
+                                            Retro Arcade Co LTD - Premium Inventory
+                                        </p>
+                                    </div>
+                                </div>
+                                <button 
+                                    onClick={() => setShowProductModal(false)}
+                                    className="w-10 h-10 rounded-xl flex items-center justify-center transition-all hover:scale-110"
+                                    style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)' }}
+                                >
+                                    <X size={20} style={{ color: isDark ? '#8b8b9e' : '#64748b' }} />
+                                </button>
+                            </div>
+
+                            {/* Modal Body */}
+                            <div className="px-8 py-6 space-y-6 max-h-[70vh] overflow-y-auto">
+                                {/* Image Upload Section */}
+                                <div>
+                                    <label className="block text-sm font-semibold mb-3" style={{ color: isDark ? '#ffffff' : '#0a0a0f' }}>
+                                        Product Image
+                                    </label>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        {/* Image Preview */}
+                                        <div 
+                                            className="aspect-square rounded-xl overflow-hidden flex items-center justify-center"
+                                            style={{ 
+                                                backgroundColor: isDark ? '#0a0a0f' : '#e2e8f0',
+                                                border: `2px dashed ${isDark ? 'rgba(168,85,247,0.3)' : 'rgba(168,85,247,0.4)'}`
+                                            }}
+                                        >
+                                            {productForm.image_url ? (
+                                                <img 
+                                                    src={productForm.image_url} 
+                                                    alt="Preview" 
+                                                    className="w-full h-full object-cover"
+                                                    onError={(e) => { e.target.style.display = 'none'; }}
+                                                />
+                                            ) : (
+                                                <div className="text-center p-4">
+                                                    <Image size={48} style={{ color: isDark ? '#3a3a4a' : '#94a3b8', margin: '0 auto 8px' }} />
+                                                    <p className="text-sm" style={{ color: isDark ? '#8b8b9e' : '#64748b' }}>No image</p>
+                                                </div>
+                                            )}
+                                        </div>
+                                        {/* Upload Options */}
+                                        <div className="space-y-3">
+                                            <div 
+                                                className="p-4 rounded-xl text-center cursor-pointer transition-all hover:scale-[1.02]"
+                                                style={{ 
+                                                    backgroundColor: isDark ? 'rgba(168,85,247,0.1)' : 'rgba(168,85,247,0.1)',
+                                                    border: `1px solid ${isDark ? 'rgba(168,85,247,0.3)' : 'rgba(168,85,247,0.3)'}`
+                                                }}
+                                            >
+                                                <Upload size={24} style={{ color: '#a855f7', margin: '0 auto 8px' }} />
+                                                <p className="text-sm font-medium" style={{ color: '#a855f7' }}>Upload Image</p>
+                                                <p className="text-xs mt-1" style={{ color: isDark ? '#8b8b9e' : '#64748b' }}>PNG, JPG up to 5MB</p>
+                                                <input 
+                                                    type="file" 
+                                                    accept="image/*"
+                                                    className="hidden"
+                                                    onChange={(e) => {
+                                                        const file = e.target.files[0];
+                                                        if (file) {
+                                                            const reader = new FileReader();
+                                                            reader.onloadend = () => {
+                                                                setProductForm({...productForm, image_url: reader.result});
+                                                            };
+                                                            reader.readAsDataURL(file);
+                                                        }
+                                                    }}
+                                                    id="product-image-upload"
+                                                />
+                                                <label htmlFor="product-image-upload" className="absolute inset-0 cursor-pointer" />
+                                            </div>
+                                            <div className="relative">
+                                                <input
+                                                    type="text"
+                                                    value={productForm.image_url}
+                                                    onChange={(e) => setProductForm({...productForm, image_url: e.target.value})}
+                                                    className="w-full px-4 py-3 rounded-xl text-sm"
+                                                    style={inputStyle}
+                                                    placeholder="Or paste image URL..."
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Product Details */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="md:col-span-2">
+                                        <label className="block text-sm font-semibold mb-2" style={{ color: isDark ? '#ffffff' : '#0a0a0f' }}>
+                                            Product Title *
+                                        </label>
                                         <input
-                                            type="number"
-                                            step="0.01"
-                                            value={productForm.price}
-                                            onChange={(e) => setProductForm({...productForm, price: e.target.value})}
-                                            className="w-full px-4 py-3 rounded-lg"
+                                            type="text"
+                                            value={productForm.title}
+                                            onChange={(e) => setProductForm({...productForm, title: e.target.value})}
+                                            className="w-full px-4 py-3 rounded-xl transition-all focus:ring-2 focus:ring-primary/50"
                                             style={inputStyle}
-                                            placeholder="0.00"
+                                            placeholder="Enter product title"
+                                        />
+                                    </div>
+                                    <div className="md:col-span-2">
+                                        <label className="block text-sm font-semibold mb-2" style={{ color: isDark ? '#ffffff' : '#0a0a0f' }}>
+                                            Description
+                                        </label>
+                                        <textarea
+                                            value={productForm.description}
+                                            onChange={(e) => setProductForm({...productForm, description: e.target.value})}
+                                            className="w-full px-4 py-3 rounded-xl resize-none transition-all focus:ring-2 focus:ring-primary/50"
+                                            style={inputStyle}
+                                            rows={3}
+                                            placeholder="Describe your product..."
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium mb-2" style={{ color: isDark ? '#8b8b9e' : '#64748b' }}>Stock</label>
+                                        <label className="block text-sm font-semibold mb-2" style={{ color: isDark ? '#ffffff' : '#0a0a0f' }}>
+                                            Price (£) *
+                                        </label>
+                                        <div className="relative">
+                                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-lg font-bold" style={{ color: '#a855f7' }}>£</span>
+                                            <input
+                                                type="number"
+                                                step="0.01"
+                                                value={productForm.price}
+                                                onChange={(e) => setProductForm({...productForm, price: e.target.value})}
+                                                className="w-full pl-10 pr-4 py-3 rounded-xl transition-all focus:ring-2 focus:ring-primary/50"
+                                                style={inputStyle}
+                                                placeholder="0.00"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-semibold mb-2" style={{ color: isDark ? '#ffffff' : '#0a0a0f' }}>
+                                            Stock Quantity
+                                        </label>
                                         <input
                                             type="number"
                                             value={productForm.stock}
                                             onChange={(e) => setProductForm({...productForm, stock: e.target.value})}
-                                            className="w-full px-4 py-3 rounded-lg"
+                                            className="w-full px-4 py-3 rounded-xl transition-all focus:ring-2 focus:ring-primary/50"
                                             style={inputStyle}
                                             placeholder="0"
                                         />
                                     </div>
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium mb-2" style={{ color: isDark ? '#8b8b9e' : '#64748b' }}>Category</label>
-                                    <select
-                                        value={productForm.category}
-                                        onChange={(e) => setProductForm({...productForm, category: e.target.value})}
-                                        className="w-full px-4 py-3 rounded-lg"
-                                        style={inputStyle}
-                                    >
-                                        {productCategories.map(cat => (
-                                            <option key={cat} value={cat}>{cat}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium mb-2" style={{ color: isDark ? '#8b8b9e' : '#64748b' }}>Image URL</label>
-                                    <input
-                                        type="text"
-                                        value={productForm.image_url}
-                                        onChange={(e) => setProductForm({...productForm, image_url: e.target.value})}
-                                        className="w-full px-4 py-3 rounded-lg"
-                                        style={inputStyle}
-                                        placeholder="https://example.com/image.jpg"
-                                    />
+                                    <div className="md:col-span-2">
+                                        <label className="block text-sm font-semibold mb-2" style={{ color: isDark ? '#ffffff' : '#0a0a0f' }}>
+                                            Category
+                                        </label>
+                                        <select
+                                            value={productForm.category}
+                                            onChange={(e) => setProductForm({...productForm, category: e.target.value})}
+                                            className="w-full px-4 py-3 rounded-xl transition-all focus:ring-2 focus:ring-primary/50"
+                                            style={inputStyle}
+                                        >
+                                            {productCategories.map(cat => (
+                                                <option key={cat} value={cat}>{cat}</option>
+                                            ))}
+                                        </select>
+                                    </div>
                                 </div>
                             </div>
-                            <div className="flex gap-3 mt-6">
+
+                            {/* Modal Footer */}
+                            <div 
+                                className="px-8 py-5 flex gap-4"
+                                style={{ 
+                                    backgroundColor: isDark ? 'rgba(0,0,0,0.3)' : 'rgba(0,0,0,0.02)',
+                                    borderTop: `1px solid ${isDark ? 'rgba(168,85,247,0.2)' : 'rgba(168,85,247,0.15)'}`
+                                }}
+                            >
                                 <button
                                     onClick={() => setShowProductModal(false)}
-                                    className="flex-1 px-4 py-3 rounded-lg transition-colors"
-                                    style={{ backgroundColor: isDark ? '#1a1a2e' : '#e2e8f0', color: isDark ? '#ffffff' : '#0a0a0f' }}
+                                    className="flex-1 px-6 py-3 rounded-xl font-semibold transition-all hover:scale-[1.02]"
+                                    style={{ 
+                                        backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)', 
+                                        color: isDark ? '#ffffff' : '#0a0a0f' 
+                                    }}
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     onClick={handleSaveProduct}
-                                    className="flex-1 px-4 py-3 rounded-lg transition-colors"
-                                    style={{ backgroundColor: '#a855f7', color: '#ffffff' }}
+                                    className="flex-1 px-6 py-3 rounded-xl font-semibold transition-all hover:scale-[1.02] flex items-center justify-center gap-2"
+                                    style={{ 
+                                        background: 'linear-gradient(135deg, #a855f7, #22d3ee)', 
+                                        color: '#ffffff',
+                                        boxShadow: '0 4px 15px rgba(168,85,247,0.4)'
+                                    }}
                                 >
+                                    <Sparkles size={18} />
                                     {editingProduct ? 'Update Product' : 'Add Product'}
                                 </button>
                             </div>

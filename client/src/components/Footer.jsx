@@ -12,7 +12,7 @@ const Footer = () => {
         phone: '+447782260144',
         email: 'hello@old-arcade.com',
         address: '7 Llewellyn Close, Stourport-On-Severn, England, DY13 9RH',
-        aboutUs: 'Your premium destination for retro gaming excellence. Discover legendary consoles, timeless games, and elite accessories.',
+        aboutUs: 'Your premium destination for retro gaming excellence. Authorized Amazon seller and official gaming distributor. Discover legendary consoles, timeless games, and elite accessories from Retro Arcade Co LTD.',
         facebook: 'https://facebook.com/oldarcade',
         twitter: 'https://twitter.com/oldarcade',
         instagram: 'https://instagram.com/oldarcade',
@@ -115,11 +115,25 @@ const Footer = () => {
                             </span>
                         </Link>
                         <p 
-                            className="text-sm leading-relaxed mb-6"
+                            className="text-sm leading-relaxed mb-4"
                             style={{ color: isDark ? '#8b8b9e' : '#64748b' }}
                         >
                             {settings.aboutUs}
                         </p>
+                        
+                        {/* Company Badge */}
+                        <div 
+                            className="inline-flex items-center gap-2 px-3 py-2 rounded-lg mb-6"
+                            style={{ 
+                                background: 'linear-gradient(135deg, rgba(168,85,247,0.15) 0%, rgba(34,211,238,0.1) 100%)',
+                                border: `1px solid ${isDark ? 'rgba(168,85,247,0.3)' : 'rgba(168,85,247,0.2)'}`
+                            }}
+                        >
+                            <span className="text-xs font-bold" style={{ color: '#a855f7' }}>Retro Arcade Co LTD</span>
+                            <span className="text-xs px-2 py-0.5 rounded-full" style={{ backgroundColor: 'rgba(34,197,94,0.2)', color: '#22c55e' }}>
+                                Amazon Authorized
+                            </span>
+                        </div>
                         
                         {/* Social Links */}
                         <div className="flex gap-3">
