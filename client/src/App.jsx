@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-route
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import { useTheme } from './context/ThemeContext';
+import { AuthProvider } from './context/AuthContext';
 
 import Home from './pages/Home';
 import Shop from './pages/Shop';
@@ -19,6 +20,8 @@ import Privacy from './pages/Privacy';
 import CheckoutSuccess from './pages/CheckoutSuccess';
 import About from './pages/About';
 import TrackOrder from './pages/TrackOrder';
+import Account from './pages/Account';
+import Dashboard from './pages/Dashboard';
 
 // Scroll to top on route change
 function ScrollToTop() {
@@ -36,8 +39,8 @@ function Layout({ children }) {
   const location = useLocation();
   const { isDark } = useTheme();
   
-  // Hide navbar/footer on admin and login pages
-  const hideLayout = location.pathname.startsWith('/admin') || location.pathname === '/login';
+  // Hide navbar/footer on admin pages
+  const hideLayout = location.pathname.startsWith('/admin');
 
   return (
     <div 
@@ -58,28 +61,32 @@ function Layout({ children }) {
 
 function App() {
   return (
-    <Router>
-      <ScrollToTop />
-      <Layout>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/shop" element={<Shop />} />
-          <Route path="/consoles" element={<Consoles />} />
-          <Route path="/games" element={<Games />} />
-          <Route path="/product/:id" element={<ProductDetails />} />
-          <Route path="/cart" element={<Cart />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/admin/*" element={<Admin />} />
-          <Route path="/contact" element={<Contact />} />
-          <Route path="/faq" element={<FAQ />} />
-          <Route path="/shipping" element={<Shipping />} />
-          <Route path="/privacy" element={<Privacy />} />
-          <Route path="/about" element={<About />} />
-          <Route path="/track-order" element={<TrackOrder />} />
-          <Route path="/checkout/success" element={<CheckoutSuccess />} />
-        </Routes>
-      </Layout>
-    </Router>
+    <AuthProvider>
+      <Router>
+        <ScrollToTop />
+        <Layout>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/shop" element={<Shop />} />
+            <Route path="/consoles" element={<Consoles />} />
+            <Route path="/games" element={<Games />} />
+            <Route path="/product/:id" element={<ProductDetails />} />
+            <Route path="/cart" element={<Cart />} />
+            <Route path="/account" element={<Account />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/admin" element={<Login />} />
+            <Route path="/admin/*" element={<Admin />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="/faq" element={<FAQ />} />
+            <Route path="/shipping" element={<Shipping />} />
+            <Route path="/privacy" element={<Privacy />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/track-order" element={<TrackOrder />} />
+            <Route path="/checkout/success" element={<CheckoutSuccess />} />
+          </Routes>
+        </Layout>
+      </Router>
+    </AuthProvider>
   );
 }
 

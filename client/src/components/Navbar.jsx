@@ -1,15 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { ShoppingCart, Menu, X, Search, Sun, Moon, Gamepad2 } from 'lucide-react';
+import { ShoppingCart, Menu, X, Search, Sun, Moon, Gamepad2, User, LogOut, ChevronDown } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCart } from '../context/CartContext';
 import { useTheme } from '../context/ThemeContext';
+import { useAuth } from '../context/AuthContext';
 
 const Navbar = () => {
     const [isOpen, setIsOpen] = useState(false);
     const [scrolled, setScrolled] = useState(false);
+    const [userMenuOpen, setUserMenuOpen] = useState(false);
     const { getCartCount } = useCart();
     const { isDark, toggleTheme } = useTheme();
+    const { user, isAuthenticated, logout } = useAuth();
     const location = useLocation();
 
     useEffect(() => {
@@ -154,16 +157,72 @@ const Navbar = () => {
                             </motion.div>
                         </Link>
 
-                        {/* Login Button */}
-                        <Link to="/login">
-                            <motion.button
-                                whileHover={{ scale: 1.02 }}
-                                whileTap={{ scale: 0.98 }}
-                                className="btn-primary py-2.5 px-5 text-sm"
-                            >
-                                Sign In
-                            </motion.button>
-                        </Link>
+                        {/* User Menu / Sign In */}
+                        {isAuthenticated ? (
+                            <div className="relative">
+                                <motion.button
+                                    whileHover={{ scale: 1.02 }}
+                                    whileTap={{ scale: 0.98 }}
+                                    onClick={() => setUserMenuOpen(!userMenuOpen)}
+                                    className="flex items-center gap-2 py-2.5 px-4 rounded-xl transition-all"
+                                    style={{
+                                        backgroundColor: isDark ? 'rgba(168,85,247,0.1)' : 'rgba(168,85,247,0.1)',
+                                        color: '#a855f7'
+                                    }}
+                                >
+                                    <User size={18} />
+                                    <span className="text-sm font-medium max-w-[100px] truncate">{user?.name?.split(' ')[0]}</span>
+                                    <ChevronDown size={14} className={`transition-transform ${userMenuOpen ? 'rotate-180' : ''}`} />
+                                </motion.button>
+                                
+                                <AnimatePresence>
+                                    {userMenuOpen && (
+                                        <motion.div
+                                            initial={{ opacity: 0, y: 10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            exit={{ opacity: 0, y: 10 }}
+                                            className="absolute right-0 mt-2 w-48 rounded-xl overflow-hidden shadow-xl z-50"
+                                            style={{
+                                                backgroundColor: isDark ? '#1a1a2e' : '#ffffff',
+                                                border: `1px solid ${isDark ? 'rgba(168,85,247,0.2)' : 'rgba(0,0,0,0.1)'}`
+                                            }}
+                                        >
+                                            <Link
+                                                to="/dashboard"
+                                                onClick={() => setUserMenuOpen(false)}
+                                                className="flex items-center gap-3 px-4 py-3 transition-colors"
+                                                style={{ color: isDark ? '#ffffff' : '#0a0a0f' }}
+                                                onMouseEnter={(e) => e.target.style.backgroundColor = isDark ? 'rgba(168,85,247,0.1)' : 'rgba(168,85,247,0.05)'}
+                                                onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
+                                            >
+                                                <User size={16} />
+                                                <span className="text-sm font-medium">My Account</span>
+                                            </Link>
+                                            <button
+                                                onClick={() => { logout(); setUserMenuOpen(false); }}
+                                                className="w-full flex items-center gap-3 px-4 py-3 transition-colors text-left"
+                                                style={{ color: '#ef4444' }}
+                                                onMouseEnter={(e) => e.target.style.backgroundColor = 'rgba(239,68,68,0.1)'}
+                                                onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
+                                            >
+                                                <LogOut size={16} />
+                                                <span className="text-sm font-medium">Sign Out</span>
+                                            </button>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
+                            </div>
+                        ) : (
+                            <Link to="/account">
+                                <motion.button
+                                    whileHover={{ scale: 1.02 }}
+                                    whileTap={{ scale: 0.98 }}
+                                    className="btn-primary py-2.5 px-5 text-sm"
+                                >
+                                    Sign In
+                                </motion.button>
+                            </Link>
+                        )}
                     </div>
 
                     {/* Mobile Menu Button */}
@@ -256,9 +315,31 @@ const Navbar = () => {
                                 transition={{ delay: 0.5 }}
                                 className="pt-4"
                             >
-                                <Link to="/login" onClick={() => setIsOpen(false)} className="btn-primary block text-center py-3">
-                                    Sign In
-                                </Link>
+                                {isAuthenticated ? (
+                                    <div className="space-y-2">
+                                        <Link 
+                                            to="/dashboard" 
+                                            onClick={() => setIsOpen(false)} 
+                                            className="flex items-center justify-center gap-2 py-3 rounded-xl font-semibold"
+                                            style={{ backgroundColor: isDark ? 'rgba(168,85,247,0.1)' : 'rgba(168,85,247,0.1)', color: '#a855f7' }}
+                                        >
+                                            <User size={18} />
+                                            My Account
+                                        </Link>
+                                        <button 
+                                            onClick={() => { logout(); setIsOpen(false); }}
+                                            className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-semibold"
+                                            style={{ backgroundColor: 'rgba(239,68,68,0.1)', color: '#ef4444' }}
+                                        >
+                                            <LogOut size={18} />
+                                            Sign Out
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <Link to="/account" onClick={() => setIsOpen(false)} className="btn-primary block text-center py-3">
+                                        Sign In
+                                    </Link>
+                                )}
                             </motion.div>
                         </div>
                     </motion.div>

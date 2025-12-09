@@ -212,7 +212,7 @@ const Cart = () => {
                                     }`}
                                 >
                                     <CreditCard size={18} />
-                                    <span className="text-sm font-medium">Card</span>
+                                    <span className="text-sm font-medium">Stripe</span>
                                 </button>
                                 <button
                                     type="button"
@@ -273,10 +273,6 @@ const Cart = () => {
                                         </>
                                     )}
                                 </button>
-                                
-                                <p className={`mt-4 text-xs text-center ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
-                                    Stripe Test Card: 4242 4242 4242 4242
-                                </p>
                             </>
                         )}
                     </div>
