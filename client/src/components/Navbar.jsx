@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { ShoppingCart, Menu, X, Search, Sun, Moon, Gamepad2, User, LogOut, ChevronDown } from 'lucide-react';
+import { ShoppingCart, Menu, X, Search, Sun, Moon, Gamepad2, User, LogOut, ChevronDown, Star, Package } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCart } from '../context/CartContext';
 import { useTheme } from '../context/ThemeContext';
@@ -198,6 +198,28 @@ const Navbar = () => {
                                                 <User size={16} />
                                                 <span className="text-sm font-medium">My Account</span>
                                             </Link>
+                                            <Link
+                                                to="/favourites"
+                                                onClick={() => setUserMenuOpen(false)}
+                                                className="flex items-center gap-3 px-4 py-3 transition-colors"
+                                                style={{ color: isDark ? '#ffffff' : '#0a0a0f' }}
+                                                onMouseEnter={(e) => e.target.style.backgroundColor = isDark ? 'rgba(168,85,247,0.1)' : 'rgba(168,85,247,0.05)'}
+                                                onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
+                                            >
+                                                <Star size={16} />
+                                                <span className="text-sm font-medium">Favourites</span>
+                                            </Link>
+                                            <Link
+                                                to="/dashboard?tab=orders"
+                                                onClick={() => setUserMenuOpen(false)}
+                                                className="flex items-center gap-3 px-4 py-3 transition-colors"
+                                                style={{ color: isDark ? '#ffffff' : '#0a0a0f' }}
+                                                onMouseEnter={(e) => e.target.style.backgroundColor = isDark ? 'rgba(168,85,247,0.1)' : 'rgba(168,85,247,0.05)'}
+                                                onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
+                                            >
+                                                <Package size={16} />
+                                                <span className="text-sm font-medium">My Orders</span>
+                                            </Link>
                                             <button
                                                 onClick={() => { logout(); setUserMenuOpen(false); }}
                                                 className="w-full flex items-center gap-3 px-4 py-3 transition-colors text-left"
@@ -325,6 +347,24 @@ const Navbar = () => {
                                         >
                                             <User size={18} />
                                             My Account
+                                        </Link>
+                                        <Link 
+                                            to="/favourites" 
+                                            onClick={() => setIsOpen(false)} 
+                                            className="flex items-center justify-center gap-2 py-3 rounded-xl font-semibold"
+                                            style={{ backgroundColor: isDark ? 'rgba(255,191,36,0.1)' : 'rgba(255,191,36,0.1)', color: '#fbbf24' }}
+                                        >
+                                            <Star size={18} />
+                                            Favourites
+                                        </Link>
+                                        <Link 
+                                            to="/dashboard?tab=orders" 
+                                            onClick={() => setIsOpen(false)} 
+                                            className="flex items-center justify-center gap-2 py-3 rounded-xl font-semibold"
+                                            style={{ backgroundColor: isDark ? 'rgba(34,211,238,0.1)' : 'rgba(34,211,238,0.1)', color: '#22d3ee' }}
+                                        >
+                                            <Package size={18} />
+                                            My Orders
                                         </Link>
                                         <button 
                                             onClick={() => { logout(); setIsOpen(false); }}

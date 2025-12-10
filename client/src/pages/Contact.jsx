@@ -48,7 +48,7 @@ const Contact = () => {
                                 </div>
                                 <div>
                                     <h3 className="font-semibold" style={{ color: isDark ? '#fff' : '#0a0a0f' }}>Email</h3>
-                                    <p style={{ color: isDark ? '#8b8b9e' : '#64748b' }}>hello@old-arcade.com</p>
+                                    <p style={{ color: isDark ? '#8b8b9e' : '#64748b' }}>support@old-arcade.com</p>
                                 </div>
                             </div>
                         </div>
@@ -60,7 +60,7 @@ const Contact = () => {
                                 </div>
                                 <div>
                                     <h3 className="font-semibold" style={{ color: isDark ? '#fff' : '#0a0a0f' }}>Address</h3>
-                                    <p style={{ color: isDark ? '#8b8b9e' : '#64748b' }}>London, United Kingdom</p>
+                                    <p style={{ color: isDark ? '#8b8b9e' : '#64748b' }}>7 Llewellyn Close, Stourport-On-Severn, England, DY13 9RH</p>
                                 </div>
                             </div>
                         </div>

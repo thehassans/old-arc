@@ -1,19 +1,23 @@
-import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import React, { useState, useEffect, useMemo } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { ShoppingCart, Star, Truck, Shield, Check, ChevronLeft, ChevronRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useCart } from '../context/CartContext';
 import { useTheme } from '../context/ThemeContext';
+import { useAuth } from '../context/AuthContext';
 
 const ProductDetails = () => {
     const { id } = useParams();
+    const navigate = useNavigate();
     const [product, setProduct] = useState(null);
     const [loading, setLoading] = useState(true);
     const [added, setAdded] = useState(false);
     const [reviewPage, setReviewPage] = useState(1);
+    const [isFavourite, setIsFavourite] = useState(false);
     const reviewsPerPage = 3;
     const { addToCart } = useCart();
     const { isDark } = useTheme();
+    const { isAuthenticated, user, updateUser } = useAuth();
 
     const mockProducts = [
         { id: 1, title: 'Retro Console X', description: 'The ultimate retro gaming experience. Pre-loaded with 5000+ classic games from the 80s and 90s. Features HDMI output, wireless controllers, and save state functionality. Perfect for reliving your childhood memories or discovering classic games for the first time.', price: 159.99, category: 'Consoles', image_url: 'https://images.unsplash.com/photo-1606144042614-b2417e99c4e3?auto=format&fit=crop&w=800&q=80' },
@@ -42,8 +46,21 @@ const ProductDetails = () => {
         { id: 9, name: 'Chris Martin', rating: 5, date: '2024-10-25', comment: 'Amazing! Perfect for retro gaming enthusiasts. Highly recommend!' },
     ];
 
-    const totalPages = Math.ceil(mockReviews.length / reviewsPerPage);
-    const currentReviews = mockReviews.slice((reviewPage - 1) * reviewsPerPage, reviewPage * reviewsPerPage);
+    // Shuffle reviews based on product ID for variety
+    const shuffledReviews = useMemo(() => {
+        const seed = parseInt(id) || 1;
+        const shuffled = [...mockReviews];
+        // Fisher-Yates shuffle with seeded randomness
+        for (let i = shuffled.length - 1; i > 0; i--) {
+            const j = Math.floor((Math.sin(seed * (i + 1)) * 10000) % (i + 1));
+            const k = Math.abs(j);
+            [shuffled[i], shuffled[k % shuffled.length]] = [shuffled[k % shuffled.length], shuffled[i]];
+        }
+        return shuffled;
+    }, [id]);
+
+    const totalPages = Math.ceil(shuffledReviews.length / reviewsPerPage);
+    const currentReviews = shuffledReviews.slice((reviewPage - 1) * reviewsPerPage, reviewPage * reviewsPerPage);
 
     useEffect(() => {
         setTimeout(() => {
@@ -52,6 +69,38 @@ const ProductDetails = () => {
             setLoading(false);
         }, 300);
     }, [id]);
+
+    // Check if product is in favourites
+    useEffect(() => {
+        if (isAuthenticated && user?.favourites) {
+            setIsFavourite(user.favourites.some(fav => fav.id === parseInt(id)));
+        }
+    }, [id, isAuthenticated, user]);
+
+    const handleToggleFavourite = () => {
+        if (!isAuthenticated) {
+            navigate('/account');
+            return;
+        }
+
+        const currentFavourites = user?.favourites || [];
+        let newFavourites;
+
+        if (isFavourite) {
+            newFavourites = currentFavourites.filter(fav => fav.id !== parseInt(id));
+        } else {
+            newFavourites = [...currentFavourites, {
+                id: product.id,
+                title: product.title,
+                price: product.price,
+                image_url: product.image_url,
+                category: product.category
+            }];
+        }
+
+        updateUser({ favourites: newFavourites });
+        setIsFavourite(!isFavourite);
+    };
 
     const handleAddToCart = () => {
         addToCart(product);
@@ -93,7 +142,7 @@ const ProductDetails = () => {
                                 <span className="text-3xl font-bold" style={{ color: isDark ? '#fff' : '#0a0a0f' }}>£{product.price}</span>
                                 <div className="flex items-center gap-1">
                                     {[1,2,3,4,5].map(i => <Star key={i} size={18} fill="#fbbf24" color="#fbbf24" />)}
-                                    <span style={{ color: isDark ? '#8b8b9e' : '#64748b' }} className="ml-2">({mockReviews.length} reviews)</span>
+                                    <span style={{ color: isDark ? '#8b8b9e' : '#64748b' }} className="ml-2">({shuffledReviews.length} reviews)</span>
                                 </div>
                             </div>
                         </div>
@@ -119,9 +168,19 @@ const ProductDetails = () => {
                             >
                                 {added ? <><Check size={22} /> Added!</> : <><ShoppingCart size={22} /> Add to Cart</>}
                             </button>
-                            <button className="p-4 rounded-xl" style={{ backgroundColor: isDark ? '#12121a' : '#fff', border: `1px solid ${isDark ? 'rgba(168,85,247,0.2)' : 'rgba(0,0,0,0.1)'}` }}>
-                                <Star size={22} style={{ color: isDark ? '#fbbf24' : '#eab308' }} />
-                            </button>
+                            <motion.button 
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                                onClick={handleToggleFavourite}
+                                className="p-4 rounded-xl transition-all"
+                                style={{ 
+                                    backgroundColor: isFavourite ? 'rgba(251,191,36,0.1)' : (isDark ? '#12121a' : '#fff'), 
+                                    border: `1px solid ${isFavourite ? 'rgba(251,191,36,0.3)' : (isDark ? 'rgba(168,85,247,0.2)' : 'rgba(0,0,0,0.1)')}` 
+                                }}
+                                title={isAuthenticated ? (isFavourite ? 'Remove from Favourites' : 'Add to Favourites') : 'Sign in to add to Favourites'}
+                            >
+                                <Star size={22} fill={isFavourite ? '#fbbf24' : 'none'} style={{ color: '#fbbf24' }} />
+                            </motion.button>
                         </div>
                     </motion.div>
                 </div>
