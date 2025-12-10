@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LayoutDashboard, ShoppingBag, MessageSquare, Users, Settings, LogOut, Save, Phone, Mail, MapPin, Facebook, Twitter, Instagram, Youtube, Menu, X, Loader2, RefreshCw, Calendar, Clock, Edit2, Check, XCircle, Package, Plus, Trash2, Image, Upload, Sparkles, Truck, Copy, MessageCircle, Send } from 'lucide-react';
+import { LayoutDashboard, ShoppingBag, MessageSquare, Users, Settings, LogOut, Save, Phone, Mail, MapPin, Facebook, Twitter, Instagram, Youtube, Menu, X, Loader2, RefreshCw, Calendar, Clock, Edit2, Check, XCircle, Package, Plus, Trash2, Image, Upload, Sparkles, Truck, Copy, MessageCircle, Send, CheckCircle, AlertCircle } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '../context/ThemeContext';
 import axios from 'axios';
 
@@ -49,6 +50,14 @@ const Admin = () => {
     const [selectedTicket, setSelectedTicket] = useState(null);
     const [adminReply, setAdminReply] = useState('');
     const [editingMessage, setEditingMessage] = useState(null);
+
+    // Toast notification state
+    const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
+    
+    const showToast = (message, type = 'success') => {
+        setToast({ show: true, message, type });
+        setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 4000);
+    };
 
     // Check authentication
     useEffect(() => {
@@ -262,21 +271,20 @@ const Admin = () => {
 
     const handleSaveProduct = async () => {
         try {
-            if (editingProduct) {
-                const res = await axios.put(`${API_URL}/api/stripe/products/${editingProduct}`, productForm);
-                console.log('Product updated:', res.data);
+            const isEditing = !!editingProduct;
+            if (isEditing) {
+                await axios.put(`${API_URL}/api/stripe/products/${editingProduct}`, productForm);
             } else {
-                const res = await axios.post(`${API_URL}/api/stripe/products`, productForm);
-                console.log('Product created:', res.data);
+                await axios.post(`${API_URL}/api/stripe/products`, productForm);
             }
             setShowProductModal(false);
             setEditingProduct(null);
             setProductForm({ title: '', description: '', price: '', category: 'Consoles', image_url: '', stock: '' });
             await fetchProducts();
-            alert(editingProduct ? 'Product updated successfully!' : 'Product added successfully!');
+            showToast(isEditing ? 'Product updated successfully!' : 'Product added successfully!', 'success');
         } catch (error) {
             console.error('Failed to save product:', error);
-            alert('Failed to save product: ' + (error.response?.data?.error || error.message));
+            showToast('Failed to save product: ' + (error.response?.data?.error || error.message), 'error');
         }
     };
 
@@ -285,10 +293,10 @@ const Admin = () => {
             try {
                 await axios.delete(`${API_URL}/api/stripe/products/${productId}`);
                 await fetchProducts();
-                alert('Product deleted successfully!');
+                showToast('Product deleted successfully!', 'success');
             } catch (error) {
                 console.error('Failed to delete product:', error);
-                alert('Failed to delete product: ' + (error.response?.data?.error || error.message));
+                showToast('Failed to delete product: ' + (error.response?.data?.error || error.message), 'error');
             }
         }
     };
@@ -1326,6 +1334,47 @@ const Admin = () => {
                     </div>
                 </div>
             )}
+
+            {/* Premium Toast Notification */}
+            <AnimatePresence>
+                {toast.show && (
+                    <motion.div
+                        initial={{ opacity: 0, y: -50, scale: 0.9 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: -50, scale: 0.9 }}
+                        className="fixed top-6 right-6 z-[100] flex items-center gap-3 px-5 py-4 rounded-2xl shadow-2xl backdrop-blur-xl"
+                        style={{
+                            background: toast.type === 'success' 
+                                ? 'linear-gradient(135deg, rgba(34,197,94,0.95), rgba(16,185,129,0.95))'
+                                : 'linear-gradient(135deg, rgba(239,68,68,0.95), rgba(220,38,38,0.95))',
+                            border: '1px solid rgba(255,255,255,0.2)',
+                            boxShadow: toast.type === 'success'
+                                ? '0 20px 50px rgba(34,197,94,0.4), 0 0 0 1px rgba(34,197,94,0.1)'
+                                : '0 20px 50px rgba(239,68,68,0.4), 0 0 0 1px rgba(239,68,68,0.1)'
+                        }}
+                    >
+                        <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: 'rgba(255,255,255,0.2)' }}>
+                            {toast.type === 'success' ? (
+                                <CheckCircle size={22} color="white" />
+                            ) : (
+                                <AlertCircle size={22} color="white" />
+                            )}
+                        </div>
+                        <div>
+                            <p className="font-semibold text-white text-sm">
+                                {toast.type === 'success' ? 'Success!' : 'Error'}
+                            </p>
+                            <p className="text-white/90 text-sm">{toast.message}</p>
+                        </div>
+                        <button 
+                            onClick={() => setToast({ show: false, message: '', type: 'success' })}
+                            className="ml-2 p-1 rounded-lg hover:bg-white/20 transition-colors"
+                        >
+                            <X size={16} color="white" />
+                        </button>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 };
