@@ -1,54 +1,118 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useTheme } from '../context/ThemeContext';
-import { Search, Package, Truck, CheckCircle, Clock, X, Loader2, MapPinned, ArrowRight } from 'lucide-react';
+import { Search, Package, Truck, CheckCircle, Clock, X, Loader2, MapPinned, ArrowRight, Copy, ExternalLink } from 'lucide-react';
 import axios from 'axios';
 
 const API_URL = import.meta.env.VITE_API_URL || '';
 
+// Courier tracking URLs
+const courierUrls = {
+    'evri': 'https://www.evri.com/track-a-parcel/',
+    'yodel': 'https://www.yodel.co.uk/track/',
+    'dpd': 'https://www.dpd.co.uk/tracking/',
+    'parcelforce': 'https://www.parcelforce.com/track-trace/'
+};
+
 const TrackOrder = () => {
     const { isDark } = useTheme();
+    const [searchParams] = useSearchParams();
     const [trackingNumber, setTrackingNumber] = useState('');
     const [trackingOrder, setTrackingOrder] = useState(null);
     const [trackingLoading, setTrackingLoading] = useState(false);
     const [trackingError, setTrackingError] = useState('');
     const [searched, setSearched] = useState(false);
+    const [copied, setCopied] = useState(false);
 
-    // Track order function
-    const handleTrackOrder = async (e) => {
-        e.preventDefault();
-        if (!trackingNumber.trim()) {
-            setTrackingError('Please enter an order number');
-            return;
+    // Auto-load order from URL parameter
+    useEffect(() => {
+        const orderParam = searchParams.get('order');
+        const trackingParam = searchParams.get('tracking');
+        
+        if (orderParam) {
+            setTrackingNumber(orderParam.toUpperCase());
+            trackOrderByNumber(orderParam);
+        } else if (trackingParam) {
+            setTrackingNumber(trackingParam.toUpperCase());
+            trackOrderByTrackingId(trackingParam);
         }
+    }, [searchParams]);
 
+    // Track by order number
+    const trackOrderByNumber = async (orderNum) => {
         setTrackingLoading(true);
         setTrackingError('');
         setTrackingOrder(null);
         setSearched(true);
 
         try {
-            const response = await axios.get(`${API_URL}/api/stripe/orders/track/${trackingNumber.trim()}`);
+            const response = await axios.get(`${API_URL}/api/stripe/orders/track/${orderNum.trim()}`);
             if (response.data.success) {
                 setTrackingOrder(response.data.order);
             } else {
-                setTrackingError('Order not found. Please check your order number.');
+                setTrackingError('Order not found.');
             }
         } catch (error) {
-            setTrackingError('Order not found. Please check your order number and try again.');
+            setTrackingError('Order not found. Please check your order number.');
         } finally {
             setTrackingLoading(false);
         }
     };
 
-    // Get tracking stages based on status
-    const getTrackingStages = (status) => {
+    // Track by tracking ID
+    const trackOrderByTrackingId = async (trackingId) => {
+        setTrackingLoading(true);
+        setTrackingError('');
+        setTrackingOrder(null);
+        setSearched(true);
+
+        try {
+            const response = await axios.get(`${API_URL}/api/stripe/orders/track-by-id/${trackingId.trim()}`);
+            if (response.data.success) {
+                setTrackingOrder(response.data.order);
+            } else {
+                setTrackingError('Order not found with this tracking ID.');
+            }
+        } catch (error) {
+            // Try order number as fallback
+            trackOrderByNumber(trackingId);
+        }
+    };
+
+    // Track order function
+    const handleTrackOrder = async (e) => {
+        e.preventDefault();
+        if (!trackingNumber.trim()) {
+            setTrackingError('Please enter an order number or tracking ID');
+            return;
+        }
+
+        // Check if it looks like a tracking ID (starts with courier prefix)
+        if (trackingNumber.match(/^(EVR|YDL|DPD|PF|RM|TRK)/i)) {
+            trackOrderByTrackingId(trackingNumber);
+        } else {
+            trackOrderByNumber(trackingNumber);
+        }
+    };
+
+    // Copy tracking ID
+    const copyTrackingId = () => {
+        if (trackingOrder?.tracking_id) {
+            navigator.clipboard.writeText(trackingOrder.tracking_id);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+        }
+    };
+
+    // Get tracking stages based on status history
+    const getTrackingStages = (order) => {
         const stages = [
-            { id: 1, name: 'Order Placed', icon: Package, description: 'Your order has been received and confirmed' },
-            { id: 2, name: 'Processing', icon: Clock, description: 'We are preparing your items for dispatch' },
-            { id: 3, name: 'Dispatched', icon: Truck, description: 'Your parcel has left our warehouse' },
-            { id: 4, name: 'Out for Delivery', icon: MapPinned, description: 'Your parcel is with the courier for delivery today' },
-            { id: 5, name: 'Delivered', icon: CheckCircle, description: 'Your parcel has been delivered successfully' },
+            { id: 1, key: 'Order Placed', name: 'Order Placed', icon: Package, description: 'Your order has been received and confirmed' },
+            { id: 2, key: 'Processing', name: 'Processing', icon: Clock, description: 'We are preparing your items for dispatch' },
+            { id: 3, key: 'Dispatched', name: 'Dispatched', icon: Truck, description: 'Your parcel has left our warehouse' },
+            { id: 4, key: 'Out for Delivery', name: 'Out for Delivery', icon: MapPinned, description: 'Your parcel is with the courier for delivery today' },
+            { id: 5, key: 'Delivered', name: 'Delivered', icon: CheckCircle, description: 'Your parcel has been delivered successfully' },
         ];
 
         const statusMap = {
@@ -60,8 +124,22 @@ const TrackOrder = () => {
             'Cancelled': 0
         };
 
-        const currentStage = statusMap[status] || 1;
-        return stages.map(stage => ({ ...stage, completed: stage.id <= currentStage, current: stage.id === currentStage }));
+        const currentStage = statusMap[order.status] || 1;
+        
+        // Merge with status_history timestamps
+        return stages.map(stage => {
+            const historyEntry = order.status_history?.find(h => 
+                h.status === stage.key || 
+                (stage.key === 'Dispatched' && h.status === 'Dispatched')
+            );
+            return { 
+                ...stage, 
+                completed: stage.id <= currentStage, 
+                current: stage.id === currentStage,
+                timestamp: historyEntry?.timestamp,
+                note: historyEntry?.note || stage.description
+            };
+        });
     };
 
     return (
@@ -116,7 +194,7 @@ const TrackOrder = () => {
                                     type="text"
                                     value={trackingNumber}
                                     onChange={(e) => setTrackingNumber(e.target.value.toUpperCase())}
-                                    placeholder="Enter order number (e.g. ORD-0001)"
+                                    placeholder="Order number or tracking ID"
                                     className="flex-1 px-6 py-4 rounded-xl text-lg font-medium bg-transparent outline-none"
                                     style={{ color: isDark ? '#ffffff' : '#0a0a0f' }}
                                 />
@@ -199,6 +277,60 @@ const TrackOrder = () => {
                                         </p>
                                     </div>
                                 </div>
+
+                                {/* Tracking ID and Courier Info */}
+                                {trackingOrder.tracking_id && (
+                                    <div className="mt-4 pt-4" style={{ borderTop: `1px solid ${isDark ? 'rgba(168,85,247,0.15)' : 'rgba(168,85,247,0.1)'}` }}>
+                                        <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                                            <div className="flex-1">
+                                                <p className="text-xs mb-1" style={{ color: isDark ? '#8b8b9e' : '#64748b' }}>Tracking ID</p>
+                                                <div className="flex items-center gap-2">
+                                                    <code 
+                                                        className="px-3 py-1.5 rounded-lg font-mono text-sm font-bold"
+                                                        style={{ 
+                                                            backgroundColor: isDark ? 'rgba(168,85,247,0.2)' : 'rgba(168,85,247,0.1)',
+                                                            color: '#a855f7'
+                                                        }}
+                                                    >
+                                                        {trackingOrder.tracking_id}
+                                                    </code>
+                                                    <button 
+                                                        onClick={copyTrackingId}
+                                                        className="p-1.5 rounded-lg hover:bg-primary/10 transition-colors"
+                                                        title="Copy tracking ID"
+                                                    >
+                                                        <Copy size={14} style={{ color: copied ? '#22c55e' : '#a855f7' }} />
+                                                    </button>
+                                                    {trackingOrder.courier && courierUrls[trackingOrder.courier] && (
+                                                        <a
+                                                            href={`${courierUrls[trackingOrder.courier]}${trackingOrder.tracking_id}`}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="p-1.5 rounded-lg hover:bg-primary/10 transition-colors"
+                                                            title="Track on courier website"
+                                                        >
+                                                            <ExternalLink size={14} style={{ color: '#a855f7' }} />
+                                                        </a>
+                                                    )}
+                                                </div>
+                                            </div>
+                                            {trackingOrder.courier && (
+                                                <div>
+                                                    <p className="text-xs mb-1" style={{ color: isDark ? '#8b8b9e' : '#64748b' }}>Courier</p>
+                                                    <span 
+                                                        className="px-3 py-1.5 rounded-lg text-sm font-semibold capitalize"
+                                                        style={{ 
+                                                            backgroundColor: isDark ? 'rgba(34,211,238,0.2)' : 'rgba(34,211,238,0.1)',
+                                                            color: '#22d3ee'
+                                                        }}
+                                                    >
+                                                        {trackingOrder.courier === 'evri' ? 'Evri' : trackingOrder.courier.toUpperCase()}
+                                                    </span>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
                             </div>
 
                             {/* Tracking Timeline */}
@@ -220,7 +352,7 @@ const TrackOrder = () => {
                                     </div>
                                 ) : (
                                     <div className="space-y-0">
-                                        {getTrackingStages(trackingOrder.status).map((stage, index) => (
+                                        {getTrackingStages(trackingOrder).map((stage, index) => (
                                             <div key={stage.id} className="flex gap-6">
                                                 {/* Timeline */}
                                                 <div className="flex flex-col items-center">
@@ -247,7 +379,7 @@ const TrackOrder = () => {
                                                         <div 
                                                             className="w-1 h-16"
                                                             style={{ 
-                                                                backgroundColor: stage.completed && getTrackingStages(trackingOrder.status)[index + 1]?.completed
+                                                                backgroundColor: stage.completed && getTrackingStages(trackingOrder)[index + 1]?.completed
                                                                     ? '#22c55e' 
                                                                     : isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'
                                                             }}
@@ -256,26 +388,53 @@ const TrackOrder = () => {
                                                 </div>
                                                 {/* Stage Info */}
                                                 <div className={`pb-8 ${index === 4 ? 'pb-0' : ''} flex-1`}>
-                                                    <h4 
-                                                        className="text-lg font-bold"
-                                                        style={{ 
-                                                            color: stage.completed 
-                                                                ? (isDark ? '#ffffff' : '#0a0a0f')
-                                                                : (isDark ? '#3a3a4a' : '#94a3b8')
-                                                        }}
-                                                    >
-                                                        {stage.name}
-                                                    </h4>
-                                                    <p 
-                                                        className="text-sm mt-1"
-                                                        style={{ 
-                                                            color: stage.completed 
-                                                                ? (isDark ? '#8b8b9e' : '#64748b')
-                                                                : (isDark ? '#2a2a3a' : '#cbd5e1')
-                                                        }}
-                                                    >
-                                                        {stage.description}
-                                                    </p>
+                                                    <div className="flex items-start justify-between gap-4">
+                                                        <div>
+                                                            <h4 
+                                                                className="text-lg font-bold"
+                                                                style={{ 
+                                                                    color: stage.completed 
+                                                                        ? (isDark ? '#ffffff' : '#0a0a0f')
+                                                                        : (isDark ? '#3a3a4a' : '#94a3b8')
+                                                                }}
+                                                            >
+                                                                {stage.name}
+                                                            </h4>
+                                                            <p 
+                                                                className="text-sm mt-1"
+                                                                style={{ 
+                                                                    color: stage.completed 
+                                                                        ? (isDark ? '#8b8b9e' : '#64748b')
+                                                                        : (isDark ? '#2a2a3a' : '#cbd5e1')
+                                                                }}
+                                                            >
+                                                                {stage.note}
+                                                            </p>
+                                                        </div>
+                                                        {stage.timestamp && stage.completed && (
+                                                            <div className="text-right shrink-0">
+                                                                <p 
+                                                                    className="text-xs font-medium"
+                                                                    style={{ color: isDark ? '#8b8b9e' : '#64748b' }}
+                                                                >
+                                                                    {new Date(stage.timestamp).toLocaleDateString('en-GB', {
+                                                                        day: 'numeric',
+                                                                        month: 'short',
+                                                                        year: 'numeric'
+                                                                    })}
+                                                                </p>
+                                                                <p 
+                                                                    className="text-xs"
+                                                                    style={{ color: isDark ? '#6b6b7e' : '#94a3b8' }}
+                                                                >
+                                                                    {new Date(stage.timestamp).toLocaleTimeString('en-GB', {
+                                                                        hour: '2-digit',
+                                                                        minute: '2-digit'
+                                                                    })}
+                                                                </p>
+                                                            </div>
+                                                        )}
+                                                    </div>
                                                     {stage.current && (
                                                         <span 
                                                             className="inline-block mt-3 px-3 py-1 rounded-full text-xs font-bold"

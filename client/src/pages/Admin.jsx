@@ -1,10 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LayoutDashboard, ShoppingBag, MessageSquare, Users, Settings, LogOut, Save, Phone, Mail, MapPin, Facebook, Twitter, Instagram, Youtube, Menu, X, Loader2, RefreshCw, Calendar, Clock, Edit2, Check, XCircle, Package, Plus, Trash2, Image, Upload, Sparkles } from 'lucide-react';
+import { LayoutDashboard, ShoppingBag, MessageSquare, Users, Settings, LogOut, Save, Phone, Mail, MapPin, Facebook, Twitter, Instagram, Youtube, Menu, X, Loader2, RefreshCw, Calendar, Clock, Edit2, Check, XCircle, Package, Plus, Trash2, Image, Upload, Sparkles, Truck, Copy } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import axios from 'axios';
 
 const API_URL = import.meta.env.VITE_API_URL || '';
+
+// UK Courier options
+const courierOptions = [
+    { id: 'evri', name: 'Evri (Hermes)' },
+    { id: 'yodel', name: 'Yodel' },
+    { id: 'dpd', name: 'DPD Local' },
+    { id: 'parcelforce', name: 'Parcelforce' },
+];
 
 const Admin = () => {
     const [activeTab, setActiveTab] = useState('dashboard');
@@ -16,7 +24,7 @@ const Admin = () => {
     const [orders, setOrders] = useState([]);
     const [ordersLoading, setOrdersLoading] = useState(false);
     const [editingOrder, setEditingOrder] = useState(null);
-    const [editForm, setEditForm] = useState({ status: '', scheduled_date: '', scheduled_time: '', order_date: '' });
+    const [editForm, setEditForm] = useState({ status: '', courier: '', tracking_id: '', order_date: '' });
 
     // Products state
     const [productsData, setProductsData] = useState([]);
@@ -59,8 +67,8 @@ const Admin = () => {
         setEditingOrder(order.id);
         setEditForm({
             status: order.status,
-            scheduled_date: order.scheduled_date || '',
-            scheduled_time: order.scheduled_time || '',
+            courier: order.courier || '',
+            tracking_id: order.tracking_id || '',
             order_date: order.created_at ? order.created_at.split('T')[0] : ''
         });
     };
@@ -77,7 +85,11 @@ const Admin = () => {
 
     const handleCancelEdit = () => {
         setEditingOrder(null);
-        setEditForm({ status: '', scheduled_date: '', scheduled_time: '', order_date: '' });
+        setEditForm({ status: '', courier: '', tracking_id: '', order_date: '' });
+    };
+
+    const copyToClipboard = (text) => {
+        navigator.clipboard.writeText(text);
     };
 
     // Fetch products when products tab is active
@@ -706,6 +718,7 @@ const Admin = () => {
                                                 <th className="text-left p-4 font-semibold" style={{ color: isDark ? '#8b8b9e' : '#64748b' }}>Items</th>
                                                 <th className="text-left p-4 font-semibold" style={{ color: isDark ? '#8b8b9e' : '#64748b' }}>Total</th>
                                                 <th className="text-left p-4 font-semibold" style={{ color: isDark ? '#8b8b9e' : '#64748b' }}>Status</th>
+                                                <th className="text-left p-4 font-semibold" style={{ color: isDark ? '#8b8b9e' : '#64748b' }}>Courier & Tracking</th>
                                                 <th className="text-left p-4 font-semibold" style={{ color: isDark ? '#8b8b9e' : '#64748b' }}>Date</th>
                                                 <th className="text-left p-4 font-semibold" style={{ color: isDark ? '#8b8b9e' : '#64748b' }}>Actions</th>
                                             </tr>
@@ -751,7 +764,55 @@ const Admin = () => {
                                                             <span className="px-3 py-1 rounded-full text-sm font-medium" style={{
                                                                 backgroundColor: order.status === 'Delivered' ? 'rgba(34,197,94,0.1)' : order.status === 'Shipped' ? 'rgba(59,130,246,0.1)' : order.status === 'Processing' ? 'rgba(234,179,8,0.1)' : order.status === 'Cancelled' ? 'rgba(239,68,68,0.1)' : 'rgba(168,85,247,0.1)',
                                                                 color: order.status === 'Delivered' ? '#22c55e' : order.status === 'Shipped' ? '#3b82f6' : order.status === 'Processing' ? '#eab308' : order.status === 'Cancelled' ? '#ef4444' : '#a855f7'
-                                                            }}>{order.status}</span>
+                                                            })}>{order.status}</span>
+                                                        )}
+                                                    </td>
+                                                    <td className="p-4">
+                                                        {editingOrder === order.id ? (
+                                                            <div className="space-y-2">
+                                                                <select
+                                                                    value={editForm.courier}
+                                                                    onChange={(e) => setEditForm({...editForm, courier: e.target.value})}
+                                                                    className="w-full px-2 py-1 rounded text-sm"
+                                                                    style={inputStyle}
+                                                                >
+                                                                    <option value="">Select Courier</option>
+                                                                    {courierOptions.map(c => (
+                                                                        <option key={c.id} value={c.id}>{c.name}</option>
+                                                                    ))}
+                                                                </select>
+                                                                <input
+                                                                    type="text"
+                                                                    value={editForm.tracking_id}
+                                                                    onChange={(e) => setEditForm({...editForm, tracking_id: e.target.value.toUpperCase()})}
+                                                                    placeholder="Tracking ID (auto-gen on ship)"
+                                                                    className="w-full px-2 py-1 rounded text-sm"
+                                                                    style={inputStyle}
+                                                                />
+                                                            </div>
+                                                        ) : (
+                                                            <div className="text-sm">
+                                                                {order.courier && (
+                                                                    <div className="flex items-center gap-1 mb-1">
+                                                                        <Truck size={12} style={{ color: '#22d3ee' }} />
+                                                                        <span style={{ color: isDark ? '#ffffff' : '#0a0a0f' }} className="capitalize">
+                                                                            {courierOptions.find(c => c.id === order.courier)?.name || order.courier}
+                                                                        </span>
+                                                                    </div>
+                                                                )}
+                                                                {order.tracking_id ? (
+                                                                    <div className="flex items-center gap-1">
+                                                                        <code className="text-xs px-1.5 py-0.5 rounded" style={{ backgroundColor: isDark ? 'rgba(168,85,247,0.2)' : 'rgba(168,85,247,0.1)', color: '#a855f7' }}>
+                                                                            {order.tracking_id}
+                                                                        </code>
+                                                                        <button onClick={() => copyToClipboard(order.tracking_id)} className="p-1 hover:bg-primary/10 rounded" title="Copy">
+                                                                            <Copy size={12} style={{ color: '#a855f7' }} />
+                                                                        </button>
+                                                                    </div>
+                                                                ) : (
+                                                                    <span className="opacity-50" style={{ color: isDark ? '#8b8b9e' : '#64748b' }}>No tracking</span>
+                                                                )}
+                                                            </div>
                                                         )}
                                                     </td>
                                                     <td className="p-4">

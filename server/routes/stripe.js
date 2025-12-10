@@ -38,6 +38,7 @@ router.post('/create-checkout-session', async (req, res) => {
             const subtotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
             const shipping = subtotal > 80 ? 0 : 12;
             
+            const now = new Date().toISOString();
             const order = {
                 id: orderIdCounter++,
                 order_number: `ORD-${String(orderIdCounter).padStart(4, '0')}`,
@@ -50,10 +51,14 @@ router.post('/create-checkout-session', async (req, res) => {
                 items: items,
                 total_amount: subtotal + shipping,
                 status: 'Processing',
-                scheduled_date: null,
-                scheduled_time: null,
-                created_at: new Date().toISOString(),
-                updated_at: new Date().toISOString()
+                tracking_id: null,
+                courier: null,
+                status_history: [
+                    { status: 'Order Placed', timestamp: now, note: 'Order received and confirmed' },
+                    { status: 'Processing', timestamp: now, note: 'Preparing items for dispatch' }
+                ],
+                created_at: now,
+                updated_at: now
             };
 
             orders.push(order);
@@ -174,6 +179,7 @@ router.post('/create-paypal-order', async (req, res) => {
             return res.status(400).json({ error: 'No items provided' });
         }
 
+        const now = new Date().toISOString();
         const order = {
             id: orderIdCounter++,
             order_number: `ORD-${String(orderIdCounter).padStart(4, '0')}`,
@@ -187,10 +193,14 @@ router.post('/create-paypal-order', async (req, res) => {
             items: items,
             total_amount: total_amount,
             status: 'Processing',
-            scheduled_date: null,
-            scheduled_time: null,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
+            tracking_id: null,
+            courier: null,
+            status_history: [
+                { status: 'Order Placed', timestamp: now, note: 'Order received and confirmed' },
+                { status: 'Processing', timestamp: now, note: 'Preparing items for dispatch' }
+            ],
+            created_at: now,
+            updated_at: now
         };
 
         orders.push(order);
@@ -244,28 +254,136 @@ router.get('/orders', (req, res) => {
     res.json(orders.sort((a, b) => new Date(b.created_at) - new Date(a.created_at)));
 });
 
-// Update order (admin - change status, date, time, order date)
+// Generate tracking ID
+const generateTrackingId = (courier) => {
+    const prefix = {
+        'evri': 'EVR',
+        'yodel': 'YDL',
+        'dpd': 'DPD',
+        'hermes': 'HRM',
+        'parcelforce': 'PF',
+        'royal_mail': 'RM'
+    };
+    const courierPrefix = prefix[courier] || 'TRK';
+    const randomNum = Math.random().toString(36).substring(2, 10).toUpperCase();
+    return `${courierPrefix}${Date.now().toString(36).toUpperCase()}${randomNum}`;
+};
+
+// UK Courier options (minimal record retention)
+const courierOptions = [
+    { id: 'evri', name: 'Evri (Hermes)', trackingUrl: 'https://www.evri.com/track-a-parcel/' },
+    { id: 'yodel', name: 'Yodel', trackingUrl: 'https://www.yodel.co.uk/track/' },
+    { id: 'dpd', name: 'DPD Local', trackingUrl: 'https://www.dpd.co.uk/tracking/' },
+    { id: 'parcelforce', name: 'Parcelforce', trackingUrl: 'https://www.parcelforce.com/track-trace/' },
+];
+
+// Get courier options
+router.get('/couriers', (req, res) => {
+    res.json(courierOptions);
+});
+
+// Update order (admin - change status, tracking, courier)
 router.put('/orders/:orderId', (req, res) => {
     try {
         const { orderId } = req.params;
-        const { status, scheduled_date, scheduled_time, order_date } = req.body;
+        const { status, courier, tracking_id, status_note, order_date } = req.body;
 
         const orderIndex = orders.findIndex(o => o.id === parseInt(orderId));
         if (orderIndex === -1) {
             return res.status(404).json({ error: 'Order not found' });
         }
 
-        if (status) orders[orderIndex].status = status;
-        if (scheduled_date !== undefined) orders[orderIndex].scheduled_date = scheduled_date;
-        if (scheduled_time !== undefined) orders[orderIndex].scheduled_time = scheduled_time;
-        if (order_date) orders[orderIndex].created_at = new Date(order_date).toISOString();
-        orders[orderIndex].updated_at = new Date().toISOString();
+        const order = orders[orderIndex];
+        const now = new Date().toISOString();
+
+        // Update status and add to history
+        if (status && status !== order.status) {
+            order.status = status;
+            
+            // Initialize status_history if not present
+            if (!order.status_history) {
+                order.status_history = [];
+            }
+
+            // Map status to user-friendly label
+            const statusLabels = {
+                'Processing': 'Processing',
+                'Shipped': 'Dispatched',
+                'Out for Delivery': 'Out for Delivery',
+                'Delivered': 'Delivered',
+                'Cancelled': 'Cancelled'
+            };
+
+            order.status_history.push({
+                status: statusLabels[status] || status,
+                timestamp: now,
+                note: status_note || getDefaultNote(status)
+            });
+
+            // Auto-generate tracking ID when shipped if not provided
+            if (status === 'Shipped' && !order.tracking_id) {
+                order.tracking_id = tracking_id || generateTrackingId(courier || order.courier || 'evri');
+            }
+        }
+
+        // Update courier
+        if (courier) {
+            order.courier = courier;
+        }
+
+        // Update tracking ID manually if provided
+        if (tracking_id) {
+            order.tracking_id = tracking_id;
+        }
+
+        if (order_date) {
+            order.created_at = new Date(order_date).toISOString();
+        }
+
+        order.updated_at = now;
 
         res.json({ success: true, order: orders[orderIndex] });
     } catch (error) {
         console.error('Order update error:', error);
         res.status(500).json({ error: error.message });
     }
+});
+
+// Helper function for default status notes
+function getDefaultNote(status) {
+    const notes = {
+        'Processing': 'Preparing items for dispatch',
+        'Shipped': 'Your parcel has left our warehouse',
+        'Out for Delivery': 'Your parcel is with the courier for delivery today',
+        'Delivered': 'Your parcel has been delivered successfully',
+        'Cancelled': 'Order has been cancelled'
+    };
+    return notes[status] || 'Status updated';
+}
+
+// Track order by tracking ID
+router.get('/orders/track-by-id/:trackingId', (req, res) => {
+    const { trackingId } = req.params;
+    const order = orders.find(o => 
+        o.tracking_id?.toLowerCase() === trackingId.toLowerCase()
+    );
+    
+    if (!order) {
+        return res.status(404).json({ success: false, error: 'Order not found with this tracking ID' });
+    }
+    
+    // Return limited info for tracking
+    res.json({ 
+        success: true, 
+        order: {
+            order_number: order.order_number,
+            status: order.status,
+            tracking_id: order.tracking_id,
+            courier: order.courier,
+            status_history: order.status_history,
+            created_at: order.created_at
+        }
+    });
 });
 
 // Delete order (admin)
