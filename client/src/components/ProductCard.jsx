@@ -1,16 +1,18 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ShoppingCart, Heart, Check } from 'lucide-react';
+import { ShoppingCart, Star, Check } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useCart } from '../context/CartContext';
 import { useTheme } from '../context/ThemeContext';
+import { useFavourites } from '../context/FavouritesContext';
 
 const ProductCard = ({ product }) => {
     const { addToCart } = useCart();
     const { isDark } = useTheme();
+    const { toggleFavourite, isFavourite } = useFavourites();
     const [added, setAdded] = useState(false);
-    const [liked, setLiked] = useState(false);
     const navigate = useNavigate();
+    const liked = isFavourite(product.id);
 
     const handleAddToCart = (e) => {
         e.stopPropagation();
@@ -86,14 +88,14 @@ const ProductCard = ({ product }) => {
                     <motion.button
                         whileHover={{ scale: 1.1 }}
                         whileTap={{ scale: 0.95 }}
-                        onClick={(e) => { e.preventDefault(); setLiked(!liked); }}
+                        onClick={(e) => { e.stopPropagation(); toggleFavourite(product); }}
                         className="p-3 rounded-xl transition-all"
                         style={{
-                            backgroundColor: liked ? '#ec4899' : 'rgba(255,255,255,0.9)',
+                            backgroundColor: liked ? '#f59e0b' : 'rgba(255,255,255,0.9)',
                             color: liked ? 'white' : '#0a0a0f'
                         }}
                     >
-                        <Heart size={18} fill={liked ? 'currentColor' : 'none'} />
+                        <Star size={18} fill={liked ? 'currentColor' : 'none'} />
                     </motion.button>
                 </div>
 

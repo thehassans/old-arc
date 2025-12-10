@@ -32,7 +32,7 @@ const Admin = () => {
     useEffect(() => {
         const isAuth = localStorage.getItem('adminAuth');
         if (!isAuth) {
-            navigate('/login');
+            navigate('/admin');
         }
     }, [navigate]);
 

@@ -3,7 +3,9 @@ import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
-import { User, Package, Settings, LogOut, ShoppingBag, Clock, CheckCircle, Truck, MapPin, ChevronRight, Mail, Calendar } from 'lucide-react';
+import { useFavourites } from '../context/FavouritesContext';
+import { useCart } from '../context/CartContext';
+import { User, Package, Settings, LogOut, ShoppingBag, Clock, CheckCircle, Truck, MapPin, ChevronRight, Mail, Calendar, Star, Trash2 } from 'lucide-react';
 import axios from 'axios';
 
 const API_URL = import.meta.env.VITE_API_URL || '';
@@ -11,6 +13,8 @@ const API_URL = import.meta.env.VITE_API_URL || '';
 const Dashboard = () => {
     const { isDark } = useTheme();
     const { user, logout, isAuthenticated } = useAuth();
+    const { favourites, removeFromFavourites } = useFavourites();
+    const { addToCart } = useCart();
     const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState('orders');
     const [orders, setOrders] = useState([]);
@@ -118,6 +122,30 @@ const Dashboard = () => {
                                 >
                                     <Package size={20} />
                                     <span className="font-medium">My Orders</span>
+                                </button>
+                                <button
+                                    onClick={() => setActiveTab('favourites')}
+                                    className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all`}
+                                    style={{
+                                        backgroundColor: activeTab === 'favourites' ? '#a855f7' : 'transparent',
+                                        color: activeTab === 'favourites' ? '#ffffff' : (isDark ? '#8b8b9e' : '#64748b')
+                                    }}
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <Star size={20} />
+                                        <span className="font-medium">Favourites</span>
+                                    </div>
+                                    {favourites.length > 0 && (
+                                        <span 
+                                            className="px-2 py-0.5 rounded-full text-xs font-bold"
+                                            style={{ 
+                                                backgroundColor: activeTab === 'favourites' ? 'rgba(255,255,255,0.2)' : '#f59e0b',
+                                                color: activeTab === 'favourites' ? '#ffffff' : '#ffffff'
+                                            }}
+                                        >
+                                            {favourites.length}
+                                        </span>
+                                    )}
                                 </button>
                                 <button
                                     onClick={() => setActiveTab('profile')}
@@ -287,6 +315,91 @@ const Dashboard = () => {
                                                         <Truck size={16} />
                                                         Track Order
                                                     </Link>
+                                                </div>
+                                            </motion.div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {activeTab === 'favourites' && (
+                            <div className="space-y-6">
+                                <h2 className="text-xl font-bold" style={{ color: isDark ? '#ffffff' : '#0a0a0f' }}>
+                                    My Favourites
+                                </h2>
+
+                                {favourites.length === 0 ? (
+                                    <div className="rounded-2xl p-12 text-center" style={cardStyle}>
+                                        <Star size={48} className="mx-auto mb-4 opacity-50" style={{ color: '#f59e0b' }} />
+                                        <h3 className="font-bold text-lg mb-2" style={{ color: isDark ? '#ffffff' : '#0a0a0f' }}>
+                                            No favourites yet
+                                        </h3>
+                                        <p className="mb-6" style={{ color: isDark ? '#8b8b9e' : '#64748b' }}>
+                                            Star products to save them here
+                                        </p>
+                                        <Link
+                                            to="/shop"
+                                            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold"
+                                            style={{
+                                                background: 'linear-gradient(135deg, #a855f7, #22d3ee)',
+                                                color: '#ffffff'
+                                            }}
+                                        >
+                                            Browse Products
+                                            <ChevronRight size={18} />
+                                        </Link>
+                                    </div>
+                                ) : (
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        {favourites.map(product => (
+                                            <motion.div
+                                                key={product.id}
+                                                initial={{ opacity: 0, y: 10 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                className="rounded-xl overflow-hidden flex"
+                                                style={cardStyle}
+                                            >
+                                                <div 
+                                                    className="w-24 h-24 flex-shrink-0 overflow-hidden"
+                                                    style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)' }}
+                                                >
+                                                    {product.image_url ? (
+                                                        <img src={product.image_url} alt={product.title} className="w-full h-full object-cover" />
+                                                    ) : (
+                                                        <div className="w-full h-full flex items-center justify-center">
+                                                            <Package size={24} style={{ color: isDark ? '#8b8b9e' : '#64748b' }} />
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <div className="flex-1 p-4 flex flex-col justify-between">
+                                                    <div>
+                                                        <h4 className="font-bold text-sm mb-1" style={{ color: isDark ? '#ffffff' : '#0a0a0f' }}>
+                                                            {product.title}
+                                                        </h4>
+                                                        <p className="text-sm font-bold" style={{ color: '#a855f7' }}>
+                                                            £{product.price?.toFixed(2)}
+                                                        </p>
+                                                    </div>
+                                                    <div className="flex items-center gap-2 mt-2">
+                                                        <button
+                                                            onClick={() => { addToCart(product); }}
+                                                            className="flex-1 py-2 px-3 rounded-lg text-xs font-semibold"
+                                                            style={{
+                                                                background: 'linear-gradient(135deg, #a855f7, #22d3ee)',
+                                                                color: '#ffffff'
+                                                            }}
+                                                        >
+                                                            Add to Cart
+                                                        </button>
+                                                        <button
+                                                            onClick={() => removeFromFavourites(product.id)}
+                                                            className="p-2 rounded-lg"
+                                                            style={{ backgroundColor: 'rgba(239,68,68,0.1)', color: '#ef4444' }}
+                                                        >
+                                                            <Trash2 size={14} />
+                                                        </button>
+                                                    </div>
                                                 </div>
                                             </motion.div>
                                         ))}

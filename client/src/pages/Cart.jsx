@@ -3,6 +3,7 @@ import { Trash2, Plus, Minus, ArrowRight, Loader2, CreditCard } from 'lucide-rea
 import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useTheme } from '../context/ThemeContext';
+import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 
 const API_URL = import.meta.env.VITE_API_URL || '';
@@ -13,6 +14,7 @@ const PAYPAL_CLIENT_ID = import.meta.env.VITE_PAYPAL_CLIENT_ID || 'sb';
 const Cart = () => {
     const { cartItems, updateQuantity, removeFromCart, getCartTotal, clearCart } = useCart();
     const { isDark } = useTheme();
+    const { user } = useAuth();
     const navigate = useNavigate();
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
@@ -105,6 +107,8 @@ const Cart = () => {
                             })),
                             paypal_order_id: details.id,
                             payer: details.payer,
+                            customerEmail: user?.email,
+                            customerName: user?.name,
                             total_amount: total
                         });
 
@@ -159,7 +163,9 @@ const Cart = () => {
                     price: item.price,
                     quantity: item.quantity,
                     image_url: item.image_url
-                }))
+                })),
+                customerEmail: user?.email,
+                customerName: user?.name || cardForm.name
             });
 
             // Handle demo order (when Stripe not configured)

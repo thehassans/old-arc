@@ -4,6 +4,7 @@ import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import { useTheme } from './context/ThemeContext';
 import { AuthProvider } from './context/AuthContext';
+import { FavouritesProvider } from './context/FavouritesContext';
 
 import Home from './pages/Home';
 import Shop from './pages/Shop';
@@ -62,9 +63,10 @@ function Layout({ children }) {
 function App() {
   return (
     <AuthProvider>
-      <Router>
-        <ScrollToTop />
-        <Layout>
+      <FavouritesProvider>
+        <Router>
+          <ScrollToTop />
+          <Layout>
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/shop" element={<Shop />} />
@@ -84,8 +86,9 @@ function App() {
             <Route path="/track-order" element={<TrackOrder />} />
             <Route path="/checkout/success" element={<CheckoutSuccess />} />
           </Routes>
-        </Layout>
-      </Router>
+          </Layout>
+        </Router>
+      </FavouritesProvider>
     </AuthProvider>
   );
 }

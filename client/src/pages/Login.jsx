@@ -23,7 +23,7 @@ const Login = () => {
             if (username === 'adminoldarcade' && password === 'admin12345') {
                 localStorage.setItem('adminAuth', 'true');
                 localStorage.setItem('adminUser', username);
-                navigate('/admin');
+                navigate('/admin/dashboard');
             } else {
                 setError('Invalid username or password');
             }

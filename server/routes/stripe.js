@@ -27,7 +27,7 @@ if (process.env.STRIPE_SECRET_KEY) {
 // Create checkout session
 router.post('/create-checkout-session', async (req, res) => {
     try {
-        const { items, customerEmail } = req.body;
+        const { items, customerEmail, customerName } = req.body;
 
         if (!items || items.length === 0) {
             return res.status(400).json({ error: 'No items provided' });
@@ -44,7 +44,7 @@ router.post('/create-checkout-session', async (req, res) => {
                 stripe_session_id: null,
                 payment_method: 'card',
                 customer_email: customerEmail || 'customer@example.com',
-                customer_name: 'Card Customer',
+                customer_name: customerName || 'Card Customer',
                 items: items,
                 total_amount: subtotal + shipping,
                 status: 'Processing',
@@ -166,7 +166,7 @@ router.get('/verify-session/:sessionId', async (req, res) => {
 // Create PayPal order (after PayPal payment is captured)
 router.post('/create-paypal-order', async (req, res) => {
     try {
-        const { items, paypal_order_id, payer, total_amount } = req.body;
+        const { items, paypal_order_id, payer, total_amount, customerEmail, customerName } = req.body;
 
         if (!items || items.length === 0) {
             return res.status(400).json({ error: 'No items provided' });
@@ -178,8 +178,8 @@ router.post('/create-paypal-order', async (req, res) => {
             stripe_session_id: null,
             paypal_order_id: paypal_order_id || null,
             payment_method: 'paypal',
-            customer_email: payer?.email_address || 'paypal@customer.com',
-            customer_name: payer?.name?.given_name ? `${payer.name.given_name} ${payer.name.surname || ''}` : 'PayPal Customer',
+            customer_email: customerEmail || payer?.email_address || 'paypal@customer.com',
+            customer_name: customerName || (payer?.name?.given_name ? `${payer.name.given_name} ${payer.name.surname || ''}` : 'PayPal Customer'),
             items: items,
             total_amount: total_amount,
             status: 'Processing',
