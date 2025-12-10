@@ -15,8 +15,9 @@ app.use(cors({
 // Stripe webhook needs raw body - must come before json parser
 app.use('/api/stripe/webhook', express.raw({ type: 'application/json' }));
 
-// Parse JSON bodies for other routes
-app.use(express.json());
+// Parse JSON bodies for other routes (increase limit for large payloads)
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 // API routes
 app.use('/api/stripe', stripeRoutes);
