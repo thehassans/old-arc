@@ -5,18 +5,14 @@ import Hero from '../components/Hero';
 import ProductCard from '../components/ProductCard';
 import { useTheme } from '../context/ThemeContext';
 import { Zap, Shield, Truck, Award, ArrowRight, Sparkles } from 'lucide-react';
+import axios from 'axios';
+
+const API_URL = import.meta.env.VITE_API_URL || '';
 
 const Home = () => {
     const [featuredProducts, setFeaturedProducts] = useState([]);
     const [loading, setLoading] = useState(true);
     const { isDark } = useTheme();
-
-    const mockProducts = [
-        { id: 1, title: 'Retro Console X', description: 'The ultimate retro gaming experience with 5000+ games.', price: 159.99, category: 'Consoles', image_url: 'https://images.unsplash.com/photo-1606144042614-b2417e99c4e3?auto=format&fit=crop&w=600&q=80' },
-        { id: 2, title: 'Wireless Pro Controller', description: 'Ergonomic design with precision analogue sticks.', price: 44.99, category: 'Accessories', image_url: 'https://images.unsplash.com/photo-1600080972464-8e5f35f63d08?auto=format&fit=crop&w=600&q=80' },
-        { id: 3, title: 'Gaming Headset RGB', description: '7.1 surround sound with noise cancellation.', price: 79.99, category: 'Accessories', image_url: 'https://images.unsplash.com/photo-1599669454699-248893623440?auto=format&fit=crop&w=600&q=80' },
-        { id: 4, title: 'Controller Charging Dock', description: 'Dual charging station with LED indicators.', price: 24.99, category: 'Accessories', image_url: 'https://images.unsplash.com/photo-1595225476474-87563907a212?auto=format&fit=crop&w=600&q=80' },
-    ];
 
     const features = [
         { icon: Zap, title: 'Fast Shipping', desc: '2-3 day delivery', color: '#a855f7' },
@@ -26,10 +22,18 @@ const Home = () => {
     ];
 
     useEffect(() => {
-        setTimeout(() => {
-            setFeaturedProducts(mockProducts);
-            setLoading(false);
-        }, 800);
+        const fetchProducts = async () => {
+            try {
+                const response = await axios.get(`${API_URL}/api/stripe/products`);
+                // Get first 4 products for featured section
+                setFeaturedProducts(response.data.slice(0, 4));
+            } catch (error) {
+                console.error('Failed to fetch products:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchProducts();
     }, []);
 
     return (

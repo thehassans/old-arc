@@ -3,24 +3,28 @@ import { motion } from 'framer-motion';
 import ProductCard from '../components/ProductCard';
 import { Gamepad2 } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
+import axios from 'axios';
+
+const API_URL = import.meta.env.VITE_API_URL || '';
 
 const Consoles = () => {
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
     const { isDark } = useTheme();
 
-    const mockProducts = [
-        { id: 1, title: 'Retro Console X', description: 'The ultimate retro gaming experience with 5000+ games built-in.', price: 159.99, category: 'Consoles', image_url: 'https://images.unsplash.com/photo-1606144042614-b2417e99c4e3?auto=format&fit=crop&w=600&q=80' },
-        { id: 7, title: 'Retro Handheld Plus', description: 'Portable gaming with 3000+ games. 5-inch IPS display.', price: 89.99, category: 'Consoles', image_url: 'https://images.unsplash.com/photo-1531525645387-7f14be1bdbbd?auto=format&fit=crop&w=600&q=80' },
-        { id: 11, title: 'Retro Mini Arcade', description: 'Desktop arcade cabinet with 200 classic games.', price: 79.99, category: 'Consoles', image_url: 'https://images.unsplash.com/photo-1578303512597-81e6cc155b3e?auto=format&fit=crop&w=600&q=80' },
-        { id: 13, title: 'Classic Console Bundle', description: 'Vintage console with 2 controllers and 50 games.', price: 199.99, category: 'Consoles', image_url: 'https://images.unsplash.com/photo-1486401899868-0e435ed85128?auto=format&fit=crop&w=600&q=80' },
-    ];
-
     useEffect(() => {
-        setTimeout(() => {
-            setProducts(mockProducts);
-            setLoading(false);
-        }, 500);
+        const fetchProducts = async () => {
+            try {
+                const response = await axios.get(`${API_URL}/api/stripe/products`);
+                // Filter only Consoles category
+                setProducts(response.data.filter(p => p.category === 'Consoles'));
+            } catch (error) {
+                console.error('Failed to fetch products:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchProducts();
     }, []);
 
     return (

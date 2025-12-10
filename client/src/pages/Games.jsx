@@ -3,24 +3,28 @@ import { motion } from 'framer-motion';
 import ProductCard from '../components/ProductCard';
 import { Disc3 } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
+import axios from 'axios';
+
+const API_URL = import.meta.env.VITE_API_URL || '';
 
 const Games = () => {
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
     const { isDark } = useTheme();
 
-    const mockProducts = [
-        { id: 4, title: 'Classic Game Bundle', description: 'Collection of 10 retro classic titles including platformers and RPGs.', price: 69.99, category: 'Games', image_url: 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=600&q=80' },
-        { id: 14, title: 'RPG Legends Pack', description: 'Ultimate collection of classic RPG games from the golden era.', price: 49.99, category: 'Games', image_url: 'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=600&q=80' },
-        { id: 15, title: 'Arcade Classics Vol.1', description: '20 arcade classics including Pac-Man, Galaga, and more.', price: 39.99, category: 'Games', image_url: 'https://images.unsplash.com/photo-1493711662062-fa541f7f76ce?auto=format&fit=crop&w=600&q=80' },
-        { id: 16, title: 'Racing Collection', description: 'High-speed racing games from the 90s and 2000s.', price: 34.99, category: 'Games', image_url: 'https://images.unsplash.com/photo-1552820728-8b83bb6b2b0f?auto=format&fit=crop&w=600&q=80' },
-    ];
-
     useEffect(() => {
-        setTimeout(() => {
-            setProducts(mockProducts);
-            setLoading(false);
-        }, 500);
+        const fetchProducts = async () => {
+            try {
+                const response = await axios.get(`${API_URL}/api/stripe/products`);
+                // Filter only Games category
+                setProducts(response.data.filter(p => p.category === 'Games'));
+            } catch (error) {
+                console.error('Failed to fetch products:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchProducts();
     }, []);
 
     return (

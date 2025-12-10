@@ -5,6 +5,9 @@ import { motion } from 'framer-motion';
 import { useCart } from '../context/CartContext';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
+import axios from 'axios';
+
+const API_URL = import.meta.env.VITE_API_URL || '';
 
 const ProductDetails = () => {
     const { id } = useParams();
@@ -18,21 +21,6 @@ const ProductDetails = () => {
     const { addToCart } = useCart();
     const { isDark } = useTheme();
     const { isAuthenticated, user, updateUser } = useAuth();
-
-    const mockProducts = [
-        { id: 1, title: 'Retro Console X', description: 'The ultimate retro gaming experience. Pre-loaded with 5000+ classic games from the 80s and 90s. Features HDMI output, wireless controllers, and save state functionality. Perfect for reliving your childhood memories or discovering classic games for the first time.', price: 159.99, category: 'Consoles', image_url: 'https://images.unsplash.com/photo-1606144042614-b2417e99c4e3?auto=format&fit=crop&w=800&q=80' },
-        { id: 2, title: 'Wireless Pro Controller', description: 'Ergonomic design with precision analogue sticks. Compatible with PC, consoles, and mobile devices. 40-hour battery life. Features vibration feedback and motion controls.', price: 44.99, category: 'Accessories', image_url: 'https://images.unsplash.com/photo-1600080972464-8e5f35f63d08?auto=format&fit=crop&w=800&q=80' },
-        { id: 3, title: 'Gaming Headset RGB', description: '7.1 surround sound with noise cancellation. Ultra-comfortable memory foam ear cushions. Detachable boom microphone. RGB lighting with 16 million colours.', price: 79.99, category: 'Accessories', image_url: 'https://images.unsplash.com/photo-1599669454699-248893623440?auto=format&fit=crop&w=800&q=80' },
-        { id: 4, title: 'Classic Game Bundle', description: 'Collection of 10 retro classic titles including platformers and RPGs. Compatible with all our retro consoles. Includes rare Japanese imports.', price: 69.99, category: 'Games', image_url: 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=800&q=80' },
-        { id: 5, title: 'Handheld Retro Console', description: 'Portable gaming with 3.5" IPS screen and 3000+ built-in games. Rechargeable battery lasts 8 hours. Save states and fast forward features.', price: 89.99, category: 'Consoles', image_url: 'https://images.unsplash.com/photo-1531525645387-7f14be1bdbbd?auto=format&fit=crop&w=800&q=80' },
-        { id: 6, title: 'Arcade Neon Sign', description: 'LED neon sign to light up your gaming space. Multiple colour modes including rainbow and breathing effects. Low power consumption.', price: 64.99, category: 'Merch', image_url: 'https://images.unsplash.com/photo-1563207153-f403bf289096?auto=format&fit=crop&w=800&q=80' },
-        { id: 7, title: 'Retro Handheld Plus', description: 'Premium portable gaming with 5-inch IPS display and 3000+ games. Features WiFi for multiplayer gaming.', price: 89.99, category: 'Consoles', image_url: 'https://images.unsplash.com/photo-1531525645387-7f14be1bdbbd?auto=format&fit=crop&w=800&q=80' },
-        { id: 11, title: 'Retro Mini Arcade', description: 'Desktop arcade cabinet with 200 classic arcade games. Authentic joystick and buttons. Perfect desk companion.', price: 79.99, category: 'Consoles', image_url: 'https://images.unsplash.com/photo-1578303512597-81e6cc155b3e?auto=format&fit=crop&w=800&q=80' },
-        { id: 13, title: 'Classic Console Bundle', description: 'Vintage console with 2 wireless controllers and 50 premium games. HDMI and AV outputs included.', price: 199.99, category: 'Consoles', image_url: 'https://images.unsplash.com/photo-1486401899868-0e435ed85128?auto=format&fit=crop&w=800&q=80' },
-        { id: 14, title: 'RPG Legends Pack', description: 'Ultimate collection of classic RPG games from the golden era. Over 100 hours of gameplay.', price: 49.99, category: 'Games', image_url: 'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=800&q=80' },
-        { id: 15, title: 'Arcade Classics Vol.1', description: '20 arcade classics including Pac-Man, Galaga, Donkey Kong, and more. Authentic arcade experience.', price: 39.99, category: 'Games', image_url: 'https://images.unsplash.com/photo-1493711662062-fa541f7f76ce?auto=format&fit=crop&w=800&q=80' },
-        { id: 16, title: 'Racing Collection', description: 'High-speed racing games from the 90s and 2000s. Includes 15 classic racing titles.', price: 34.99, category: 'Games', image_url: 'https://images.unsplash.com/photo-1552820728-8b83bb6b2b0f?auto=format&fit=crop&w=800&q=80' },
-    ];
 
     const mockReviews = [
         { id: 1, name: 'James Wilson', rating: 5, date: '2024-12-01', comment: 'Absolutely love this product! Brings back so many childhood memories. Quality is excellent and delivery was fast.' },
@@ -63,11 +51,17 @@ const ProductDetails = () => {
     const currentReviews = shuffledReviews.slice((reviewPage - 1) * reviewsPerPage, reviewPage * reviewsPerPage);
 
     useEffect(() => {
-        setTimeout(() => {
-            const found = mockProducts.find(p => p.id === parseInt(id));
-            setProduct(found);
-            setLoading(false);
-        }, 300);
+        const fetchProduct = async () => {
+            try {
+                const response = await axios.get(`${API_URL}/api/stripe/products/${id}`);
+                setProduct(response.data);
+            } catch (error) {
+                console.error('Failed to fetch product:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchProduct();
     }, [id]);
 
     // Check if product is in favourites

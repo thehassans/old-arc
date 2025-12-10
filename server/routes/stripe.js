@@ -464,6 +464,7 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
 
 // Get all products
 router.get('/products', (req, res) => {
+    console.log(`[Products] Returning ${products.length} products`);
     res.json(products);
 });
 
@@ -497,6 +498,7 @@ router.post('/products', (req, res) => {
         };
 
         products.push(product);
+        console.log(`[Products] Created new product: ${product.title} (ID: ${product.id}). Total products: ${products.length}`);
         res.status(201).json({ success: true, product });
     } catch (error) {
         console.error('Create product error:', error);
