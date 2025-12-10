@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
@@ -16,9 +16,18 @@ const Dashboard = () => {
     const { favourites, removeFromFavourites } = useFavourites();
     const { addToCart } = useCart();
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
     const [activeTab, setActiveTab] = useState('orders');
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
+
+    // Set active tab from URL parameter
+    useEffect(() => {
+        const tab = searchParams.get('tab');
+        if (tab && ['orders', 'favourites', 'profile'].includes(tab)) {
+            setActiveTab(tab);
+        }
+    }, [searchParams]);
 
     useEffect(() => {
         if (!isAuthenticated) {
@@ -30,14 +39,17 @@ const Dashboard = () => {
 
     const fetchUserOrders = async () => {
         try {
-            // Fetch all orders and filter by user email
+            // Fetch all orders and filter by user email (case-insensitive)
             const response = await axios.get(`${API_URL}/api/stripe/orders`);
-            const userOrders = response.data.filter(order => 
-                order.customer_email === user?.email
+            const allOrders = response.data || [];
+            const userOrders = allOrders.filter(order => 
+                order.customer_email?.toLowerCase() === user?.email?.toLowerCase()
             );
+            console.log('All orders:', allOrders.length, 'User orders:', userOrders.length, 'User email:', user?.email);
             setOrders(userOrders);
         } catch (error) {
             console.error('Failed to fetch orders:', error);
+            setOrders([]);
         } finally {
             setLoading(false);
         }

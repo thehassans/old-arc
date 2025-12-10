@@ -199,17 +199,6 @@ const Navbar = () => {
                                                 <span className="text-sm font-medium">My Account</span>
                                             </Link>
                                             <Link
-                                                to="/favourites"
-                                                onClick={() => setUserMenuOpen(false)}
-                                                className="flex items-center gap-3 px-4 py-3 transition-colors"
-                                                style={{ color: isDark ? '#ffffff' : '#0a0a0f' }}
-                                                onMouseEnter={(e) => e.target.style.backgroundColor = isDark ? 'rgba(168,85,247,0.1)' : 'rgba(168,85,247,0.05)'}
-                                                onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
-                                            >
-                                                <Star size={16} />
-                                                <span className="text-sm font-medium">Favourites</span>
-                                            </Link>
-                                            <Link
                                                 to="/dashboard?tab=orders"
                                                 onClick={() => setUserMenuOpen(false)}
                                                 className="flex items-center gap-3 px-4 py-3 transition-colors"
@@ -219,6 +208,17 @@ const Navbar = () => {
                                             >
                                                 <Package size={16} />
                                                 <span className="text-sm font-medium">My Orders</span>
+                                            </Link>
+                                            <Link
+                                                to="/dashboard?tab=favourites"
+                                                onClick={() => setUserMenuOpen(false)}
+                                                className="flex items-center gap-3 px-4 py-3 transition-colors"
+                                                style={{ color: '#f59e0b' }}
+                                                onMouseEnter={(e) => e.target.style.backgroundColor = isDark ? 'rgba(245,158,11,0.1)' : 'rgba(245,158,11,0.05)'}
+                                                onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
+                                            >
+                                                <Star size={16} />
+                                                <span className="text-sm font-medium">Favourites</span>
                                             </Link>
                                             <button
                                                 onClick={() => { logout(); setUserMenuOpen(false); }}
