@@ -263,25 +263,32 @@ const Admin = () => {
     const handleSaveProduct = async () => {
         try {
             if (editingProduct) {
-                await axios.put(`${API_URL}/api/stripe/products/${editingProduct}`, productForm);
+                const res = await axios.put(`${API_URL}/api/stripe/products/${editingProduct}`, productForm);
+                console.log('Product updated:', res.data);
             } else {
-                await axios.post(`${API_URL}/api/stripe/products`, productForm);
+                const res = await axios.post(`${API_URL}/api/stripe/products`, productForm);
+                console.log('Product created:', res.data);
             }
             setShowProductModal(false);
             setEditingProduct(null);
-            fetchProducts();
+            setProductForm({ title: '', description: '', price: '', category: 'Consoles', image_url: '', stock: '' });
+            await fetchProducts();
+            alert(editingProduct ? 'Product updated successfully!' : 'Product added successfully!');
         } catch (error) {
             console.error('Failed to save product:', error);
+            alert('Failed to save product: ' + (error.response?.data?.error || error.message));
         }
     };
 
     const handleDeleteProduct = async (productId) => {
-        if (window.confirm('Are you sure you want to delete this product?')) {
+        if (window.confirm('Are you sure you want to delete this product? This cannot be undone.')) {
             try {
                 await axios.delete(`${API_URL}/api/stripe/products/${productId}`);
-                fetchProducts();
+                await fetchProducts();
+                alert('Product deleted successfully!');
             } catch (error) {
                 console.error('Failed to delete product:', error);
+                alert('Failed to delete product: ' + (error.response?.data?.error || error.message));
             }
         }
     };
