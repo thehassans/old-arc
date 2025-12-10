@@ -315,6 +315,70 @@ const Admin = () => {
 
     const [saved, setSaved] = useState(false);
 
+    // Email settings state
+    const [emailSettings, setEmailSettings] = useState({
+        mailgunApiKey: '',
+        mailgunDomain: '',
+        fromEmail: 'Old Arcade <noreply@old-arcade.com>',
+        adminEmail: 'admin@old-arcade.com',
+        enabled: false,
+        hasApiKey: false
+    });
+    const [emailLoading, setEmailLoading] = useState(false);
+    const [testEmailAddress, setTestEmailAddress] = useState('');
+    const [testEmailSending, setTestEmailSending] = useState(false);
+
+    // Fetch email settings on load
+    useEffect(() => {
+        if (activeTab === 'settings') {
+            fetchEmailSettings();
+        }
+    }, [activeTab]);
+
+    const fetchEmailSettings = async () => {
+        try {
+            const response = await axios.get(`${API_URL}/api/stripe/email/settings`);
+            setEmailSettings(prev => ({ ...prev, ...response.data }));
+        } catch (error) {
+            console.error('Failed to fetch email settings:', error);
+        }
+    };
+
+    const saveEmailSettings = async () => {
+        setEmailLoading(true);
+        try {
+            const response = await axios.put(`${API_URL}/api/stripe/email/settings`, emailSettings);
+            setEmailSettings(prev => ({ ...prev, ...response.data.settings }));
+            showToast('Email settings saved successfully!', 'success');
+        } catch (error) {
+            console.error('Failed to save email settings:', error);
+            showToast('Failed to save email settings', 'error');
+        } finally {
+            setEmailLoading(false);
+        }
+    };
+
+    const sendTestEmail = async () => {
+        if (!testEmailAddress) {
+            showToast('Please enter a test email address', 'error');
+            return;
+        }
+        setTestEmailSending(true);
+        try {
+            const response = await axios.post(`${API_URL}/api/stripe/email/test`, { to: testEmailAddress });
+            if (response.data.success) {
+                showToast('Test email sent successfully!', 'success');
+            } else {
+                showToast(response.data.reason === 'disabled' ? 'Enable emails first' : 'Failed to send test email', 'error');
+            }
+        } catch (error) {
+            console.error('Failed to send test email:', error);
+            showToast('Failed to send test email', 'error');
+        } finally {
+            setTestEmailSending(false);
+        }
+    };
+
     // Stats data - computed from real orders
     const stats = {
         orders: orders.length,
@@ -1201,6 +1265,137 @@ const Admin = () => {
                             <Save size={20} />
                             Save Settings
                         </button>
+
+                        {/* Email Settings (Mailgun) */}
+                        <div className="p-6 rounded-xl space-y-4" style={cardStyle}>
+                            <div className="flex items-center justify-between mb-4">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #22d3ee, #a855f7)' }}>
+                                        <Mail size={20} color="white" />
+                                    </div>
+                                    <div>
+                                        <h2 className="text-xl font-semibold" style={{ color: isDark ? '#ffffff' : '#0a0a0f' }}>Email Notifications</h2>
+                                        <p className="text-sm" style={{ color: isDark ? '#8b8b9e' : '#64748b' }}>Configure Mailgun for email delivery</p>
+                                    </div>
+                                </div>
+                                <label className="relative inline-flex items-center cursor-pointer">
+                                    <input 
+                                        type="checkbox" 
+                                        checked={emailSettings.enabled} 
+                                        onChange={(e) => setEmailSettings({...emailSettings, enabled: e.target.checked})}
+                                        className="sr-only peer"
+                                    />
+                                    <div className="w-14 h-7 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-0.5 after:left-[4px] after:bg-white after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-purple-500 peer-checked:to-cyan-400"></div>
+                                </label>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium mb-2" style={{ color: isDark ? '#8b8b9e' : '#64748b' }}>
+                                        Mailgun API Key *
+                                    </label>
+                                    <input 
+                                        type="password" 
+                                        value={emailSettings.mailgunApiKey} 
+                                        onChange={(e) => setEmailSettings({...emailSettings, mailgunApiKey: e.target.value})}
+                                        placeholder={emailSettings.hasApiKey ? '••••••••••••••••' : 'Enter your API key'}
+                                        className="w-full px-4 py-3 rounded-lg" 
+                                        style={inputStyle} 
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium mb-2" style={{ color: isDark ? '#8b8b9e' : '#64748b' }}>
+                                        Mailgun Domain *
+                                    </label>
+                                    <input 
+                                        type="text" 
+                                        value={emailSettings.mailgunDomain} 
+                                        onChange={(e) => setEmailSettings({...emailSettings, mailgunDomain: e.target.value})}
+                                        placeholder="mg.yourdomain.com"
+                                        className="w-full px-4 py-3 rounded-lg" 
+                                        style={inputStyle} 
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium mb-2" style={{ color: isDark ? '#8b8b9e' : '#64748b' }}>
+                                        From Email
+                                    </label>
+                                    <input 
+                                        type="text" 
+                                        value={emailSettings.fromEmail} 
+                                        onChange={(e) => setEmailSettings({...emailSettings, fromEmail: e.target.value})}
+                                        placeholder="Old Arcade <noreply@old-arcade.com>"
+                                        className="w-full px-4 py-3 rounded-lg" 
+                                        style={inputStyle} 
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium mb-2" style={{ color: isDark ? '#8b8b9e' : '#64748b' }}>
+                                        Admin Notification Email
+                                    </label>
+                                    <input 
+                                        type="email" 
+                                        value={emailSettings.adminEmail} 
+                                        onChange={(e) => setEmailSettings({...emailSettings, adminEmail: e.target.value})}
+                                        placeholder="admin@old-arcade.com"
+                                        className="w-full px-4 py-3 rounded-lg" 
+                                        style={inputStyle} 
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="flex items-center gap-3 pt-4" style={{ borderTop: `1px solid ${isDark ? 'rgba(168,85,247,0.1)' : 'rgba(0,0,0,0.05)'}` }}>
+                                <button 
+                                    onClick={saveEmailSettings} 
+                                    disabled={emailLoading}
+                                    className="flex items-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-white transition-all disabled:opacity-50"
+                                    style={{ background: 'linear-gradient(135deg, #a855f7, #22d3ee)' }}
+                                >
+                                    {emailLoading ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
+                                    Save Email Settings
+                                </button>
+                            </div>
+
+                            {/* Test Email */}
+                            <div className="mt-4 p-4 rounded-lg" style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)' }}>
+                                <h3 className="text-sm font-semibold mb-3" style={{ color: isDark ? '#ffffff' : '#0a0a0f' }}>Send Test Email</h3>
+                                <div className="flex gap-3">
+                                    <input 
+                                        type="email" 
+                                        value={testEmailAddress} 
+                                        onChange={(e) => setTestEmailAddress(e.target.value)}
+                                        placeholder="Enter email address"
+                                        className="flex-1 px-4 py-2.5 rounded-lg" 
+                                        style={inputStyle} 
+                                    />
+                                    <button 
+                                        onClick={sendTestEmail}
+                                        disabled={testEmailSending || !emailSettings.enabled}
+                                        className="flex items-center gap-2 px-4 py-2.5 rounded-lg font-medium transition-all disabled:opacity-50"
+                                        style={{ backgroundColor: isDark ? 'rgba(34,211,238,0.1)' : 'rgba(34,211,238,0.1)', color: '#22d3ee' }}
+                                    >
+                                        {testEmailSending ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
+                                        Send Test
+                                    </button>
+                                </div>
+                                {!emailSettings.enabled && (
+                                    <p className="text-xs mt-2" style={{ color: '#eab308' }}>Enable email notifications to send test emails</p>
+                                )}
+                            </div>
+
+                            {/* Email Events Info */}
+                            <div className="mt-4 p-4 rounded-lg" style={{ backgroundColor: isDark ? 'rgba(168,85,247,0.05)' : 'rgba(168,85,247,0.03)' }}>
+                                <h3 className="text-sm font-semibold mb-2" style={{ color: isDark ? '#ffffff' : '#0a0a0f' }}>Email Notifications Sent For:</h3>
+                                <div className="grid grid-cols-2 gap-2 text-sm" style={{ color: isDark ? '#8b8b9e' : '#64748b' }}>
+                                    <span>✓ New order confirmation (to customer)</span>
+                                    <span>✓ New order alert (to admin)</span>
+                                    <span>✓ Order status updates</span>
+                                    <span>✓ Shipping/tracking info</span>
+                                    <span>✓ Support ticket created</span>
+                                    <span>✓ Support ticket replies</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 )}
             </div>

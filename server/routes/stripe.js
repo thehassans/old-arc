@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const emailService = require('../services/emailService');
 
 // In-memory orders store (replace with database in production)
 let orders = [];
@@ -164,6 +165,11 @@ router.get('/verify-session/:sessionId', async (req, res) => {
             };
 
             orders.push(order);
+            
+            // Send order confirmation emails
+            emailService.sendOrderConfirmation(order).catch(err => console.error('Failed to send order confirmation:', err));
+            emailService.sendNewOrderAlert(order).catch(err => console.error('Failed to send admin alert:', err));
+            
             res.json({ success: true, order });
         } else {
             res.json({ success: false, message: 'Payment not completed' });
@@ -208,6 +214,11 @@ router.post('/create-paypal-order', async (req, res) => {
         };
 
         orders.push(order);
+        
+        // Send order confirmation emails
+        emailService.sendOrderConfirmation(order).catch(err => console.error('Failed to send order confirmation:', err));
+        emailService.sendNewOrderAlert(order).catch(err => console.error('Failed to send admin alert:', err));
+        
         res.json({ success: true, order });
     } catch (error) {
         console.error('PayPal order error:', error);
@@ -299,9 +310,10 @@ router.put('/orders/:orderId', (req, res) => {
 
         const order = orders[orderIndex];
         const now = new Date().toISOString();
+        const previousStatus = order.status;
 
         // Update status and add to history
-        if (status && status !== order.status) {
+        if (status && status !== previousStatus) {
             order.status = status;
             
             // Initialize status_history if not present
@@ -353,6 +365,13 @@ router.put('/orders/:orderId', (req, res) => {
         }
 
         order.updated_at = now;
+
+        // Send status update email if status changed
+        if (status && status !== previousStatus) {
+            const additionalInfo = { tracking_id: order.tracking_id, courier: order.courier };
+            emailService.sendOrderStatusUpdate(order, status, additionalInfo)
+                .catch(err => console.error('Failed to send status update email:', err));
+        }
 
         res.json({ success: true, order: orders[orderIndex] });
     } catch (error) {
@@ -577,6 +596,11 @@ router.post('/tickets', (req, res) => {
             updated_at: now
         };
         tickets.unshift(ticket);
+        
+        // Send ticket confirmation emails
+        emailService.sendTicketCreatedCustomer(ticket).catch(err => console.error('Failed to send ticket confirmation:', err));
+        emailService.sendTicketCreatedAdmin(ticket).catch(err => console.error('Failed to send admin ticket alert:', err));
+        
         res.json({ success: true, ticket });
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -592,9 +616,15 @@ router.post('/tickets/:ticketId/messages', (req, res) => {
         if (!ticket) return res.status(404).json({ error: 'Ticket not found' });
         
         const msgTimestamp = timestamp || new Date().toISOString();
-        ticket.messages.push({ message, sender, senderName, timestamp: msgTimestamp });
+        const newMessage = { message, sender, senderName, timestamp: msgTimestamp };
+        ticket.messages.push(newMessage);
         ticket.updated_at = msgTimestamp;
-        if (sender === 'admin') ticket.status = 'replied';
+        if (sender === 'admin') {
+            ticket.status = 'replied';
+            // Send reply notification to customer
+            emailService.sendTicketReply(ticket, newMessage)
+                .catch(err => console.error('Failed to send ticket reply notification:', err));
+        }
         
         res.json({ success: true, ticket });
     } catch (error) {
@@ -628,6 +658,42 @@ router.delete('/tickets/:ticketId', (req, res) => {
         if (idx === -1) return res.status(404).json({ error: 'Ticket not found' });
         tickets.splice(idx, 1);
         res.json({ success: true });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// ==================== EMAIL SETTINGS ====================
+
+// Get email settings
+router.get('/email/settings', (req, res) => {
+    res.json(emailService.getEmailSettings());
+});
+
+// Update email settings
+router.put('/email/settings', (req, res) => {
+    try {
+        const { mailgunApiKey, mailgunDomain, fromEmail, adminEmail, enabled } = req.body;
+        emailService.updateEmailSettings({
+            mailgunApiKey,
+            mailgunDomain,
+            fromEmail,
+            adminEmail,
+            enabled
+        });
+        res.json({ success: true, settings: emailService.getEmailSettings() });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Send test email
+router.post('/email/test', async (req, res) => {
+    try {
+        const { to } = req.body;
+        if (!to) return res.status(400).json({ error: 'Email address required' });
+        const result = await emailService.sendTestEmail(to);
+        res.json(result);
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
