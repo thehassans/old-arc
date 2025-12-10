@@ -259,8 +259,9 @@ const Cart = () => {
         <div className="pt-24 pb-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto min-h-screen">
             <h1 className="text-4xl font-display font-bold mb-12">Shopping <span className="text-primary">Cart</span></h1>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-                <div className="lg:col-span-2 space-y-6">
+            <div className="flex flex-col lg:flex-row gap-8">
+                {/* Cart Items - 60% */}
+                <div className="w-full lg:w-[60%] space-y-6">
                     {cartItems.map(item => (
                         <div key={item.id} className={`rounded-xl p-6 flex gap-6 items-center ${isDark ? 'bg-dark-lighter/50 border border-white/10' : 'bg-light-darker/50 border border-dark/10'}`}>
                             <div className={`w-24 h-24 rounded-lg overflow-hidden flex-shrink-0 ${isDark ? 'bg-dark' : 'bg-light'}`}>
@@ -286,7 +287,8 @@ const Cart = () => {
                     ))}
                 </div>
 
-                <div className="lg:col-span-1">
+                {/* Order Summary - 40% */}
+                <div className="w-full lg:w-[40%]">
                     <div className={`rounded-xl p-8 sticky top-24 ${isDark ? 'bg-dark-lighter/50 border border-white/10' : 'bg-light-darker/50 border border-dark/10'}`}>
                         <h3 className="text-xl font-bold mb-6">Order Summary</h3>
 

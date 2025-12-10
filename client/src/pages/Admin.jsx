@@ -25,6 +25,13 @@ const Admin = () => {
     const [ordersLoading, setOrdersLoading] = useState(false);
     const [editingOrder, setEditingOrder] = useState(null);
     const [editForm, setEditForm] = useState({ status: '', courier: '', tracking_id: '', order_date: '' });
+    
+    // Shipping/Delivery Modal state
+    const [showShippingModal, setShowShippingModal] = useState(false);
+    const [shippingModalOrder, setShippingModalOrder] = useState(null);
+    const [shippingForm, setShippingForm] = useState({ courier: '', tracking_id: '', shipped_date: '' });
+    const [showDeliveryModal, setShowDeliveryModal] = useState(false);
+    const [deliveryForm, setDeliveryForm] = useState({ delivered_date: '' });
 
     // Products state
     const [productsData, setProductsData] = useState([]);
@@ -90,6 +97,62 @@ const Admin = () => {
 
     const copyToClipboard = (text) => {
         navigator.clipboard.writeText(text);
+    };
+
+    // Handle status change - show modal for Shipped/Delivered
+    const handleStatusChange = (order, newStatus) => {
+        if (newStatus === 'Shipped') {
+            setShippingModalOrder(order);
+            setShippingForm({ 
+                courier: order.courier || 'evri', 
+                tracking_id: order.tracking_id || '', 
+                shipped_date: new Date().toISOString().split('T')[0] 
+            });
+            setShowShippingModal(true);
+        } else if (newStatus === 'Delivered') {
+            setShippingModalOrder(order);
+            setDeliveryForm({ delivered_date: new Date().toISOString().split('T')[0] });
+            setShowDeliveryModal(true);
+        } else {
+            // Direct update for other statuses
+            updateOrderStatus(order.id, { status: newStatus });
+        }
+    };
+
+    // Submit shipping details
+    const handleShippingSubmit = async () => {
+        if (!shippingForm.courier) {
+            alert('Please select a courier');
+            return;
+        }
+        await updateOrderStatus(shippingModalOrder.id, {
+            status: 'Shipped',
+            courier: shippingForm.courier,
+            tracking_id: shippingForm.tracking_id,
+            shipped_date: shippingForm.shipped_date
+        });
+        setShowShippingModal(false);
+        setShippingModalOrder(null);
+    };
+
+    // Submit delivery details
+    const handleDeliverySubmit = async () => {
+        await updateOrderStatus(shippingModalOrder.id, {
+            status: 'Delivered',
+            delivered_date: deliveryForm.delivered_date
+        });
+        setShowDeliveryModal(false);
+        setShippingModalOrder(null);
+    };
+
+    // Update order status API call
+    const updateOrderStatus = async (orderId, data) => {
+        try {
+            await axios.put(`${API_URL}/api/stripe/orders/${orderId}`, data);
+            fetchOrders();
+        } catch (error) {
+            console.error('Failed to update order:', error);
+        }
     };
 
     // Fetch products when products tab is active
@@ -749,23 +812,20 @@ const Admin = () => {
                                                     <td className="p-4" style={{ color: isDark ? '#ffffff' : '#0a0a0f' }}>{order.items?.length || 0}</td>
                                                     <td className="p-4 font-semibold" style={{ color: isDark ? '#ffffff' : '#0a0a0f' }}>£{order.total_amount?.toFixed(2)}</td>
                                                     <td className="p-4">
-                                                        {editingOrder === order.id ? (
-                                                            <select
-                                                                value={editForm.status}
-                                                                onChange={(e) => setEditForm({...editForm, status: e.target.value})}
-                                                                className="px-2 py-1 rounded text-sm"
-                                                                style={inputStyle}
-                                                            >
-                                                                {statusOptions.map(status => (
-                                                                    <option key={status} value={status}>{status}</option>
-                                                                ))}
-                                                            </select>
-                                                        ) : (
-                                                            <span className="px-3 py-1 rounded-full text-sm font-medium" style={{
+                                                        <select
+                                                            value={order.status}
+                                                            onChange={(e) => handleStatusChange(order, e.target.value)}
+                                                            className="px-3 py-1.5 rounded-lg text-sm font-medium cursor-pointer"
+                                                            style={{
                                                                 backgroundColor: order.status === 'Delivered' ? 'rgba(34,197,94,0.1)' : order.status === 'Shipped' ? 'rgba(59,130,246,0.1)' : order.status === 'Processing' ? 'rgba(234,179,8,0.1)' : order.status === 'Cancelled' ? 'rgba(239,68,68,0.1)' : 'rgba(168,85,247,0.1)',
-                                                                color: order.status === 'Delivered' ? '#22c55e' : order.status === 'Shipped' ? '#3b82f6' : order.status === 'Processing' ? '#eab308' : order.status === 'Cancelled' ? '#ef4444' : '#a855f7'
-                                                            }}>{order.status}</span>
-                                                        )}
+                                                                color: order.status === 'Delivered' ? '#22c55e' : order.status === 'Shipped' ? '#3b82f6' : order.status === 'Processing' ? '#eab308' : order.status === 'Cancelled' ? '#ef4444' : '#a855f7',
+                                                                border: 'none'
+                                                            }}
+                                                        >
+                                                            {statusOptions.map(status => (
+                                                                <option key={status} value={status}>{status}</option>
+                                                            ))}
+                                                        </select>
                                                     </td>
                                                     <td className="p-4">
                                                         {editingOrder === order.id ? (
@@ -1009,6 +1069,136 @@ const Admin = () => {
                     </div>
                 )}
             </div>
+
+            {/* Shipping Modal */}
+            {showShippingModal && shippingModalOrder && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+                    <div className="w-full max-w-md mx-4 rounded-2xl p-6" style={cardStyle}>
+                        <div className="flex items-center gap-3 mb-6">
+                            <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #a855f7, #22d3ee)' }}>
+                                <Truck size={24} color="white" />
+                            </div>
+                            <div>
+                                <h3 className="text-xl font-bold" style={{ color: isDark ? '#ffffff' : '#0a0a0f' }}>Ship Order</h3>
+                                <p className="text-sm" style={{ color: isDark ? '#8b8b9e' : '#64748b' }}>{shippingModalOrder.order_number}</p>
+                            </div>
+                        </div>
+
+                        <div className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium mb-2" style={{ color: isDark ? '#ffffff' : '#0a0a0f' }}>
+                                    Courier *
+                                </label>
+                                <select
+                                    value={shippingForm.courier}
+                                    onChange={(e) => setShippingForm({...shippingForm, courier: e.target.value})}
+                                    className="w-full px-4 py-3 rounded-lg"
+                                    style={inputStyle}
+                                >
+                                    {courierOptions.map(c => (
+                                        <option key={c.id} value={c.id}>{c.name}</option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium mb-2" style={{ color: isDark ? '#ffffff' : '#0a0a0f' }}>
+                                    Tracking ID (auto-generated if empty)
+                                </label>
+                                <input
+                                    type="text"
+                                    value={shippingForm.tracking_id}
+                                    onChange={(e) => setShippingForm({...shippingForm, tracking_id: e.target.value.toUpperCase()})}
+                                    placeholder="Leave empty for auto-generate"
+                                    className="w-full px-4 py-3 rounded-lg"
+                                    style={inputStyle}
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium mb-2" style={{ color: isDark ? '#ffffff' : '#0a0a0f' }}>
+                                    Shipment Date
+                                </label>
+                                <input
+                                    type="date"
+                                    value={shippingForm.shipped_date}
+                                    onChange={(e) => setShippingForm({...shippingForm, shipped_date: e.target.value})}
+                                    className="w-full px-4 py-3 rounded-lg"
+                                    style={inputStyle}
+                                />
+                            </div>
+                        </div>
+
+                        <div className="flex gap-3 mt-6">
+                            <button
+                                onClick={() => { setShowShippingModal(false); setShippingModalOrder(null); }}
+                                className="flex-1 px-4 py-3 rounded-lg font-semibold transition-colors"
+                                style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)', color: isDark ? '#ffffff' : '#0a0a0f' }}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleShippingSubmit}
+                                className="flex-1 px-4 py-3 rounded-lg font-semibold text-white flex items-center justify-center gap-2"
+                                style={{ background: 'linear-gradient(135deg, #a855f7, #22d3ee)' }}
+                            >
+                                <Truck size={18} />
+                                Ship Order
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Delivery Modal */}
+            {showDeliveryModal && shippingModalOrder && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+                    <div className="w-full max-w-md mx-4 rounded-2xl p-6" style={cardStyle}>
+                        <div className="flex items-center gap-3 mb-6">
+                            <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ backgroundColor: 'rgba(34,197,94,0.2)' }}>
+                                <Check size={24} style={{ color: '#22c55e' }} />
+                            </div>
+                            <div>
+                                <h3 className="text-xl font-bold" style={{ color: isDark ? '#ffffff' : '#0a0a0f' }}>Mark as Delivered</h3>
+                                <p className="text-sm" style={{ color: isDark ? '#8b8b9e' : '#64748b' }}>{shippingModalOrder.order_number}</p>
+                            </div>
+                        </div>
+
+                        <div className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium mb-2" style={{ color: isDark ? '#ffffff' : '#0a0a0f' }}>
+                                    Delivery Date
+                                </label>
+                                <input
+                                    type="date"
+                                    value={deliveryForm.delivered_date}
+                                    onChange={(e) => setDeliveryForm({...deliveryForm, delivered_date: e.target.value})}
+                                    className="w-full px-4 py-3 rounded-lg"
+                                    style={inputStyle}
+                                />
+                            </div>
+                        </div>
+
+                        <div className="flex gap-3 mt-6">
+                            <button
+                                onClick={() => { setShowDeliveryModal(false); setShippingModalOrder(null); }}
+                                className="flex-1 px-4 py-3 rounded-lg font-semibold transition-colors"
+                                style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)', color: isDark ? '#ffffff' : '#0a0a0f' }}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleDeliverySubmit}
+                                className="flex-1 px-4 py-3 rounded-lg font-semibold text-white flex items-center justify-center gap-2"
+                                style={{ backgroundColor: '#22c55e' }}
+                            >
+                                <Check size={18} />
+                                Mark Delivered
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

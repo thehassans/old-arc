@@ -286,7 +286,7 @@ router.get('/couriers', (req, res) => {
 router.put('/orders/:orderId', (req, res) => {
     try {
         const { orderId } = req.params;
-        const { status, courier, tracking_id, status_note, order_date } = req.body;
+        const { status, courier, tracking_id, status_note, order_date, shipped_date, delivered_date } = req.body;
 
         const orderIndex = orders.findIndex(o => o.id === parseInt(orderId));
         if (orderIndex === -1) {
@@ -314,15 +314,23 @@ router.put('/orders/:orderId', (req, res) => {
                 'Cancelled': 'Cancelled'
             };
 
+            // Use custom date if provided, otherwise use now
+            let statusTimestamp = now;
+            if (status === 'Shipped' && shipped_date) {
+                statusTimestamp = new Date(shipped_date).toISOString();
+            } else if (status === 'Delivered' && delivered_date) {
+                statusTimestamp = new Date(delivered_date).toISOString();
+            }
+
             order.status_history.push({
                 status: statusLabels[status] || status,
-                timestamp: now,
+                timestamp: statusTimestamp,
                 note: status_note || getDefaultNote(status)
             });
 
             // Auto-generate tracking ID when shipped if not provided
-            if (status === 'Shipped' && !order.tracking_id) {
-                order.tracking_id = tracking_id || generateTrackingId(courier || order.courier || 'evri');
+            if (status === 'Shipped') {
+                order.tracking_id = tracking_id || order.tracking_id || generateTrackingId(courier || order.courier || 'evri');
             }
         }
 
