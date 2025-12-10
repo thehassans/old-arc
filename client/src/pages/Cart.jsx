@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Trash2, Plus, Minus, ArrowRight, Loader2, CreditCard } from 'lucide-react';
+import { Trash2, Plus, Minus, ArrowRight, Loader2, CreditCard, MapPin, Phone, Mail, User as UserIcon, Home, Building } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useTheme } from '../context/ThemeContext';
@@ -27,6 +27,18 @@ const Cart = () => {
         cvv: '',
         name: ''
     });
+    const [addressForm, setAddressForm] = useState({
+        fullName: user?.name || '',
+        email: user?.email || '',
+        phone: '',
+        address1: '',
+        address2: '',
+        city: '',
+        county: '',
+        postcode: '',
+        country: 'United Kingdom'
+    });
+    const [sameAsShipping, setSameAsShipping] = useState(true);
 
     // Format card number with spaces
     const formatCardNumber = (value) => {
@@ -107,9 +119,20 @@ const Cart = () => {
                             })),
                             paypal_order_id: details.id,
                             payer: details.payer,
-                            customerEmail: user?.email,
-                            customerName: user?.name,
-                            total_amount: total
+                            customerEmail: addressForm.email || user?.email,
+                            customerName: addressForm.fullName || user?.name,
+                            total_amount: total,
+                            shippingAddress: {
+                                fullName: addressForm.fullName,
+                                email: addressForm.email,
+                                phone: addressForm.phone,
+                                address1: addressForm.address1,
+                                address2: addressForm.address2,
+                                city: addressForm.city,
+                                county: addressForm.county,
+                                postcode: addressForm.postcode,
+                                country: addressForm.country
+                            }
                         });
 
                         if (response.data.success) {
@@ -134,6 +157,32 @@ const Cart = () => {
     const handleCheckout = async () => {
         if (paymentMethod === 'paypal') {
             // PayPal handles its own checkout via buttons
+            return;
+        }
+
+        // Validate address form
+        if (!addressForm.fullName.trim()) {
+            setError('Please enter your full name');
+            return;
+        }
+        if (!addressForm.email.trim()) {
+            setError('Please enter your email address');
+            return;
+        }
+        if (!addressForm.phone.trim()) {
+            setError('Please enter your phone number');
+            return;
+        }
+        if (!addressForm.address1.trim()) {
+            setError('Please enter your address');
+            return;
+        }
+        if (!addressForm.city.trim()) {
+            setError('Please enter your city');
+            return;
+        }
+        if (!addressForm.postcode.trim()) {
+            setError('Please enter your postcode');
             return;
         }
 
@@ -164,8 +213,19 @@ const Cart = () => {
                     quantity: item.quantity,
                     image_url: item.image_url
                 })),
-                customerEmail: user?.email,
-                customerName: user?.name || cardForm.name
+                customerEmail: addressForm.email,
+                customerName: addressForm.fullName,
+                shippingAddress: {
+                    fullName: addressForm.fullName,
+                    email: addressForm.email,
+                    phone: addressForm.phone,
+                    address1: addressForm.address1,
+                    address2: addressForm.address2,
+                    city: addressForm.city,
+                    county: addressForm.county,
+                    postcode: addressForm.postcode,
+                    country: addressForm.country
+                }
             });
 
             // Handle demo order (when Stripe not configured)
@@ -242,6 +302,140 @@ const Cart = () => {
                             <div className={`border-t pt-4 flex justify-between font-bold text-lg ${isDark ? 'border-white/10' : 'border-dark/10'}`}>
                                 <span>Total</span>
                                 <span>£{total.toFixed(2)}</span>
+                            </div>
+                        </div>
+
+                        {/* Shipping Address Form */}
+                        <div className="mb-6">
+                            <div className="flex items-center gap-2 mb-4">
+                                <MapPin size={18} className="text-primary" />
+                                <p className={`text-sm font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Shipping & Billing Address</p>
+                            </div>
+                            <div className="space-y-3">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    <div className="relative">
+                                        <UserIcon size={16} className={`absolute left-3 top-1/2 -translate-y-1/2 ${isDark ? 'text-gray-500' : 'text-gray-400'}`} />
+                                        <input
+                                            type="text"
+                                            value={addressForm.fullName}
+                                            onChange={(e) => setAddressForm({...addressForm, fullName: e.target.value})}
+                                            placeholder="Full Name *"
+                                            className={`w-full pl-10 pr-4 py-2.5 rounded-lg border text-sm outline-none transition-all ${
+                                                isDark 
+                                                    ? 'bg-dark border-white/10 text-white placeholder-gray-500 focus:border-primary' 
+                                                    : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-primary'
+                                            }`}
+                                        />
+                                    </div>
+                                    <div className="relative">
+                                        <Phone size={16} className={`absolute left-3 top-1/2 -translate-y-1/2 ${isDark ? 'text-gray-500' : 'text-gray-400'}`} />
+                                        <input
+                                            type="tel"
+                                            value={addressForm.phone}
+                                            onChange={(e) => setAddressForm({...addressForm, phone: e.target.value})}
+                                            placeholder="Phone Number *"
+                                            className={`w-full pl-10 pr-4 py-2.5 rounded-lg border text-sm outline-none transition-all ${
+                                                isDark 
+                                                    ? 'bg-dark border-white/10 text-white placeholder-gray-500 focus:border-primary' 
+                                                    : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-primary'
+                                            }`}
+                                        />
+                                    </div>
+                                </div>
+                                <div className="relative">
+                                    <Mail size={16} className={`absolute left-3 top-1/2 -translate-y-1/2 ${isDark ? 'text-gray-500' : 'text-gray-400'}`} />
+                                    <input
+                                        type="email"
+                                        value={addressForm.email}
+                                        onChange={(e) => setAddressForm({...addressForm, email: e.target.value})}
+                                        placeholder="Email Address *"
+                                        className={`w-full pl-10 pr-4 py-2.5 rounded-lg border text-sm outline-none transition-all ${
+                                            isDark 
+                                                ? 'bg-dark border-white/10 text-white placeholder-gray-500 focus:border-primary' 
+                                                : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-primary'
+                                        }`}
+                                    />
+                                </div>
+                                <div className="relative">
+                                    <Home size={16} className={`absolute left-3 top-1/2 -translate-y-1/2 ${isDark ? 'text-gray-500' : 'text-gray-400'}`} />
+                                    <input
+                                        type="text"
+                                        value={addressForm.address1}
+                                        onChange={(e) => setAddressForm({...addressForm, address1: e.target.value})}
+                                        placeholder="Address Line 1 *"
+                                        className={`w-full pl-10 pr-4 py-2.5 rounded-lg border text-sm outline-none transition-all ${
+                                            isDark 
+                                                ? 'bg-dark border-white/10 text-white placeholder-gray-500 focus:border-primary' 
+                                                : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-primary'
+                                        }`}
+                                    />
+                                </div>
+                                <input
+                                    type="text"
+                                    value={addressForm.address2}
+                                    onChange={(e) => setAddressForm({...addressForm, address2: e.target.value})}
+                                    placeholder="Address Line 2 (Optional)"
+                                    className={`w-full px-4 py-2.5 rounded-lg border text-sm outline-none transition-all ${
+                                        isDark 
+                                            ? 'bg-dark border-white/10 text-white placeholder-gray-500 focus:border-primary' 
+                                            : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-primary'
+                                    }`}
+                                />
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div className="relative">
+                                        <Building size={16} className={`absolute left-3 top-1/2 -translate-y-1/2 ${isDark ? 'text-gray-500' : 'text-gray-400'}`} />
+                                        <input
+                                            type="text"
+                                            value={addressForm.city}
+                                            onChange={(e) => setAddressForm({...addressForm, city: e.target.value})}
+                                            placeholder="City *"
+                                            className={`w-full pl-10 pr-4 py-2.5 rounded-lg border text-sm outline-none transition-all ${
+                                                isDark 
+                                                    ? 'bg-dark border-white/10 text-white placeholder-gray-500 focus:border-primary' 
+                                                    : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-primary'
+                                            }`}
+                                        />
+                                    </div>
+                                    <input
+                                        type="text"
+                                        value={addressForm.county}
+                                        onChange={(e) => setAddressForm({...addressForm, county: e.target.value})}
+                                        placeholder="County"
+                                        className={`w-full px-4 py-2.5 rounded-lg border text-sm outline-none transition-all ${
+                                            isDark 
+                                                ? 'bg-dark border-white/10 text-white placeholder-gray-500 focus:border-primary' 
+                                                : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-primary'
+                                        }`}
+                                    />
+                                </div>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div className="relative">
+                                        <MapPin size={16} className={`absolute left-3 top-1/2 -translate-y-1/2 ${isDark ? 'text-gray-500' : 'text-gray-400'}`} />
+                                        <input
+                                            type="text"
+                                            value={addressForm.postcode}
+                                            onChange={(e) => setAddressForm({...addressForm, postcode: e.target.value.toUpperCase()})}
+                                            placeholder="Postcode *"
+                                            className={`w-full pl-10 pr-4 py-2.5 rounded-lg border text-sm outline-none transition-all ${
+                                                isDark 
+                                                    ? 'bg-dark border-white/10 text-white placeholder-gray-500 focus:border-primary' 
+                                                    : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-primary'
+                                            }`}
+                                        />
+                                    </div>
+                                    <select
+                                        value={addressForm.country}
+                                        onChange={(e) => setAddressForm({...addressForm, country: e.target.value})}
+                                        className={`w-full px-4 py-2.5 rounded-lg border text-sm outline-none transition-all ${
+                                            isDark 
+                                                ? 'bg-dark border-white/10 text-white focus:border-primary' 
+                                                : 'bg-white border-gray-200 text-gray-900 focus:border-primary'
+                                        }`}
+                                    >
+                                        <option value="United Kingdom">United Kingdom</option>
+                                        <option value="Ireland">Ireland</option>
+                                    </select>
+                                </div>
                             </div>
                         </div>
 

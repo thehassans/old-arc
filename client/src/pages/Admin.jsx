@@ -702,10 +702,10 @@ const Admin = () => {
                                             <tr style={{ backgroundColor: isDark ? '#0a0a0f' : '#f8fafc' }}>
                                                 <th className="text-left p-4 font-semibold" style={{ color: isDark ? '#8b8b9e' : '#64748b' }}>Order ID</th>
                                                 <th className="text-left p-4 font-semibold" style={{ color: isDark ? '#8b8b9e' : '#64748b' }}>Customer</th>
+                                                <th className="text-left p-4 font-semibold" style={{ color: isDark ? '#8b8b9e' : '#64748b' }}>Shipping Address</th>
                                                 <th className="text-left p-4 font-semibold" style={{ color: isDark ? '#8b8b9e' : '#64748b' }}>Items</th>
                                                 <th className="text-left p-4 font-semibold" style={{ color: isDark ? '#8b8b9e' : '#64748b' }}>Total</th>
                                                 <th className="text-left p-4 font-semibold" style={{ color: isDark ? '#8b8b9e' : '#64748b' }}>Status</th>
-                                                <th className="text-left p-4 font-semibold" style={{ color: isDark ? '#8b8b9e' : '#64748b' }}>Scheduled</th>
                                                 <th className="text-left p-4 font-semibold" style={{ color: isDark ? '#8b8b9e' : '#64748b' }}>Date</th>
                                                 <th className="text-left p-4 font-semibold" style={{ color: isDark ? '#8b8b9e' : '#64748b' }}>Actions</th>
                                             </tr>
@@ -717,6 +717,21 @@ const Admin = () => {
                                                     <td className="p-4">
                                                         <div style={{ color: isDark ? '#ffffff' : '#0a0a0f' }}>{order.customer_name}</div>
                                                         <div className="text-sm" style={{ color: isDark ? '#8b8b9e' : '#64748b' }}>{order.customer_email}</div>
+                                                        {order.customer_phone && (
+                                                            <div className="text-sm" style={{ color: isDark ? '#8b8b9e' : '#64748b' }}>{order.customer_phone}</div>
+                                                        )}
+                                                    </td>
+                                                    <td className="p-4">
+                                                        {order.shipping_address ? (
+                                                            <div className="text-sm max-w-[200px]" style={{ color: isDark ? '#ffffff' : '#0a0a0f' }}>
+                                                                <div>{order.shipping_address.address1}</div>
+                                                                {order.shipping_address.address2 && <div>{order.shipping_address.address2}</div>}
+                                                                <div>{order.shipping_address.city}, {order.shipping_address.postcode}</div>
+                                                                <div style={{ color: isDark ? '#8b8b9e' : '#64748b' }}>{order.shipping_address.country}</div>
+                                                            </div>
+                                                        ) : (
+                                                            <span className="text-sm opacity-50" style={{ color: isDark ? '#8b8b9e' : '#64748b' }}>No address</span>
+                                                        )}
                                                     </td>
                                                     <td className="p-4" style={{ color: isDark ? '#ffffff' : '#0a0a0f' }}>{order.items?.length || 0}</td>
                                                     <td className="p-4 font-semibold" style={{ color: isDark ? '#ffffff' : '#0a0a0f' }}>£{order.total_amount?.toFixed(2)}</td>
@@ -737,43 +752,6 @@ const Admin = () => {
                                                                 backgroundColor: order.status === 'Delivered' ? 'rgba(34,197,94,0.1)' : order.status === 'Shipped' ? 'rgba(59,130,246,0.1)' : order.status === 'Processing' ? 'rgba(234,179,8,0.1)' : order.status === 'Cancelled' ? 'rgba(239,68,68,0.1)' : 'rgba(168,85,247,0.1)',
                                                                 color: order.status === 'Delivered' ? '#22c55e' : order.status === 'Shipped' ? '#3b82f6' : order.status === 'Processing' ? '#eab308' : order.status === 'Cancelled' ? '#ef4444' : '#a855f7'
                                                             }}>{order.status}</span>
-                                                        )}
-                                                    </td>
-                                                    <td className="p-4">
-                                                        {editingOrder === order.id ? (
-                                                            <div className="flex flex-col gap-1">
-                                                                <input
-                                                                    type="date"
-                                                                    value={editForm.scheduled_date}
-                                                                    onChange={(e) => setEditForm({...editForm, scheduled_date: e.target.value})}
-                                                                    className="px-2 py-1 rounded text-sm"
-                                                                    style={inputStyle}
-                                                                />
-                                                                <input
-                                                                    type="time"
-                                                                    value={editForm.scheduled_time}
-                                                                    onChange={(e) => setEditForm({...editForm, scheduled_time: e.target.value})}
-                                                                    className="px-2 py-1 rounded text-sm"
-                                                                    style={inputStyle}
-                                                                />
-                                                            </div>
-                                                        ) : (
-                                                            <div style={{ color: isDark ? '#8b8b9e' : '#64748b' }}>
-                                                                {order.scheduled_date ? (
-                                                                    <div className="flex items-center gap-1">
-                                                                        <Calendar size={14} />
-                                                                        {order.scheduled_date}
-                                                                        {order.scheduled_time && (
-                                                                            <span className="ml-2 flex items-center gap-1">
-                                                                                <Clock size={14} />
-                                                                                {order.scheduled_time}
-                                                                            </span>
-                                                                        )}
-                                                                    </div>
-                                                                ) : (
-                                                                    <span className="text-sm opacity-50">Not scheduled</span>
-                                                                )}
-                                                            </div>
                                                         )}
                                                     </td>
                                                     <td className="p-4">
