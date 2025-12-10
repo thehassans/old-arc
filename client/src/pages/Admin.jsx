@@ -764,7 +764,7 @@ const Admin = () => {
                                                             <span className="px-3 py-1 rounded-full text-sm font-medium" style={{
                                                                 backgroundColor: order.status === 'Delivered' ? 'rgba(34,197,94,0.1)' : order.status === 'Shipped' ? 'rgba(59,130,246,0.1)' : order.status === 'Processing' ? 'rgba(234,179,8,0.1)' : order.status === 'Cancelled' ? 'rgba(239,68,68,0.1)' : 'rgba(168,85,247,0.1)',
                                                                 color: order.status === 'Delivered' ? '#22c55e' : order.status === 'Shipped' ? '#3b82f6' : order.status === 'Processing' ? '#eab308' : order.status === 'Cancelled' ? '#ef4444' : '#a855f7'
-                                                            })}>{order.status}</span>
+                                                            }}>{order.status}</span>
                                                         )}
                                                     </td>
                                                     <td className="p-4">
