@@ -23,6 +23,7 @@ import About from './pages/About';
 import TrackOrder from './pages/TrackOrder';
 import Account from './pages/Account';
 import Dashboard from './pages/Dashboard';
+import Support from './pages/Support';
 
 // Scroll to top on route change
 function ScrollToTop() {
@@ -84,6 +85,7 @@ function App() {
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/about" element={<About />} />
             <Route path="/track-order" element={<TrackOrder />} />
+            <Route path="/support" element={<Support />} />
             <Route path="/checkout/success" element={<CheckoutSuccess />} />
           </Routes>
           </Layout>

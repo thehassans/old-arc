@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LayoutDashboard, ShoppingBag, MessageSquare, Users, Settings, LogOut, Save, Phone, Mail, MapPin, Facebook, Twitter, Instagram, Youtube, Menu, X, Loader2, RefreshCw, Calendar, Clock, Edit2, Check, XCircle, Package, Plus, Trash2, Image, Upload, Sparkles, Truck, Copy } from 'lucide-react';
+import { LayoutDashboard, ShoppingBag, MessageSquare, Users, Settings, LogOut, Save, Phone, Mail, MapPin, Facebook, Twitter, Instagram, Youtube, Menu, X, Loader2, RefreshCw, Calendar, Clock, Edit2, Check, XCircle, Package, Plus, Trash2, Image, Upload, Sparkles, Truck, Copy, MessageCircle, Send } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import axios from 'axios';
 
@@ -42,6 +42,13 @@ const Admin = () => {
         title: '', description: '', price: '', category: 'Consoles', image_url: '', stock: ''
     });
     const productCategories = ['Consoles', 'Games', 'Accessories', 'Merch'];
+
+    // Support tickets state
+    const [supportTickets, setSupportTickets] = useState([]);
+    const [ticketsLoading, setTicketsLoading] = useState(false);
+    const [selectedTicket, setSelectedTicket] = useState(null);
+    const [adminReply, setAdminReply] = useState('');
+    const [editingMessage, setEditingMessage] = useState(null);
 
     // Check authentication
     useEffect(() => {
@@ -171,6 +178,66 @@ const Admin = () => {
             console.error('Failed to fetch products:', error);
         } finally {
             setProductsLoading(false);
+        }
+    };
+
+    // Fetch support tickets when queries tab is active
+    useEffect(() => {
+        if (activeTab === 'queries') {
+            fetchTickets();
+        }
+    }, [activeTab]);
+
+    const fetchTickets = async () => {
+        setTicketsLoading(true);
+        try {
+            const response = await axios.get(`${API_URL}/api/support/tickets`);
+            setSupportTickets(response.data);
+        } catch (error) {
+            console.error('Failed to fetch tickets:', error);
+        } finally {
+            setTicketsLoading(false);
+        }
+    };
+
+    const handleAdminReply = async (e) => {
+        e.preventDefault();
+        if (!adminReply.trim() || !selectedTicket) return;
+        try {
+            const response = await axios.post(`${API_URL}/api/support/tickets/${selectedTicket.id}/messages`, {
+                message: adminReply,
+                sender: 'admin',
+                senderName: 'Support Team'
+            });
+            setSelectedTicket(response.data.ticket);
+            setSupportTickets(supportTickets.map(t => t.id === response.data.ticket.id ? response.data.ticket : t));
+            setAdminReply('');
+        } catch (error) {
+            console.error('Failed to send reply:', error);
+        }
+    };
+
+    const handleUpdateTicketStatus = async (ticketId, status) => {
+        try {
+            const response = await axios.put(`${API_URL}/api/support/tickets/${ticketId}`, { status });
+            setSupportTickets(supportTickets.map(t => t.id === ticketId ? response.data.ticket : t));
+            if (selectedTicket?.id === ticketId) setSelectedTicket(response.data.ticket);
+        } catch (error) {
+            console.error('Failed to update ticket:', error);
+        }
+    };
+
+    const handleEditMessageTimestamp = async (msgIdx, newTimestamp) => {
+        if (!selectedTicket) return;
+        const updatedMessages = [...selectedTicket.messages];
+        updatedMessages[msgIdx].timestamp = new Date(newTimestamp).toISOString();
+        try {
+            const response = await axios.put(`${API_URL}/api/support/tickets/${selectedTicket.id}`, { messages: updatedMessages });
+            setSelectedTicket(response.data.ticket);
+            setSupportTickets(supportTickets.map(t => t.id === selectedTicket.id ? response.data.ticket : t));
+            setEditingMessage(null);
+        } catch (error) {
+            console.error('Failed to update message:', error);
         }
     };
 
@@ -916,29 +983,82 @@ const Admin = () => {
                     </div>
                 )}
 
-                {/* Queries Tab */}
+                {/* Queries Tab - Support Tickets */}
                 {activeTab === 'queries' && (
                     <div className="space-y-6">
-                        <h1 className="text-3xl font-bold" style={{ color: isDark ? '#ffffff' : '#0a0a0f' }}>Customer Queries</h1>
-                        <div className="grid gap-4">
-                            {queries.map(query => (
-                                <div key={query.id} className="p-6 rounded-xl" style={cardStyle}>
-                                    <div className="flex justify-between items-start mb-4">
-                                        <div>
-                                            <h3 className="font-semibold" style={{ color: isDark ? '#ffffff' : '#0a0a0f' }}>{query.name}</h3>
-                                            <p className="text-sm" style={{ color: isDark ? '#8b8b9e' : '#64748b' }}>{query.email}</p>
-                                        </div>
-                                        <div className="flex items-center gap-2">
-                                            <span className="text-xs" style={{ color: isDark ? '#8b8b9e' : '#64748b' }}>{query.date}</span>
-                                            <span className="px-2 py-1 rounded text-xs font-medium" style={{
-                                                backgroundColor: query.status === 'new' ? 'rgba(239,68,68,0.1)' : query.status === 'read' ? 'rgba(234,179,8,0.1)' : 'rgba(34,197,94,0.1)',
-                                                color: query.status === 'new' ? '#ef4444' : query.status === 'read' ? '#eab308' : '#22c55e'
-                                            }}>{query.status}</span>
-                                        </div>
-                                    </div>
-                                    <p style={{ color: isDark ? '#8b8b9e' : '#64748b' }}>{query.message}</p>
+                        <div className="flex items-center justify-between">
+                            <h1 className="text-3xl font-bold" style={{ color: isDark ? '#ffffff' : '#0a0a0f' }}>Support Tickets</h1>
+                            <button onClick={fetchTickets} className="px-4 py-2 rounded-lg font-medium flex items-center gap-2" style={{ backgroundColor: isDark ? 'rgba(168,85,247,0.1)' : 'rgba(168,85,247,0.1)', color: '#a855f7' }}>
+                                <RefreshCw size={16} /> Refresh
+                            </button>
+                        </div>
+                        
+                        <div className="flex gap-6" style={{ height: 'calc(100vh - 250px)', minHeight: '500px' }}>
+                            {/* Tickets List */}
+                            <div className="w-[35%] rounded-xl overflow-hidden flex flex-col" style={cardStyle}>
+                                <div className="p-4 font-semibold" style={{ borderBottom: `1px solid ${isDark ? 'rgba(168,85,247,0.2)' : 'rgba(0,0,0,0.1)'}`, color: isDark ? '#fff' : '#0a0a0f' }}>
+                                    All Tickets ({supportTickets.length})
                                 </div>
-                            ))}
+                                <div className="flex-1 overflow-y-auto">
+                                    {ticketsLoading ? (
+                                        <div className="flex items-center justify-center py-12"><Loader2 size={24} className="animate-spin" style={{ color: '#a855f7' }} /></div>
+                                    ) : supportTickets.length === 0 ? (
+                                        <div className="text-center py-12"><MessageCircle size={40} className="mx-auto mb-3 opacity-30" /><p style={{ color: isDark ? '#8b8b9e' : '#64748b' }}>No tickets</p></div>
+                                    ) : supportTickets.map(ticket => (
+                                        <button key={ticket.id} onClick={() => setSelectedTicket(ticket)} className="w-full text-left p-4 transition-colors" style={{ backgroundColor: selectedTicket?.id === ticket.id ? (isDark ? 'rgba(168,85,247,0.1)' : 'rgba(168,85,247,0.05)') : 'transparent', borderBottom: `1px solid ${isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'}` }}>
+                                            <div className="flex items-start justify-between gap-2 mb-1">
+                                                <h4 className="font-medium truncate" style={{ color: isDark ? '#fff' : '#0a0a0f' }}>{ticket.subject}</h4>
+                                                <span className="text-xs px-2 py-0.5 rounded-full capitalize shrink-0" style={{ backgroundColor: ticket.status === 'open' ? 'rgba(234,179,8,0.1)' : ticket.status === 'replied' ? 'rgba(34,197,94,0.1)' : 'rgba(107,114,128,0.1)', color: ticket.status === 'open' ? '#eab308' : ticket.status === 'replied' ? '#22c55e' : '#6b7280' }}>{ticket.status}</span>
+                                            </div>
+                                            <p className="text-sm" style={{ color: isDark ? '#8b8b9e' : '#64748b' }}>{ticket.name} • {ticket.email}</p>
+                                            <p className="text-xs mt-1" style={{ color: isDark ? '#6b6b7e' : '#94a3b8' }}>{new Date(ticket.updated_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</p>
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Chat Area */}
+                            <div className="w-[65%] rounded-xl overflow-hidden flex flex-col" style={cardStyle}>
+                                {selectedTicket ? (
+                                    <>
+                                        <div className="p-4 flex items-center justify-between" style={{ borderBottom: `1px solid ${isDark ? 'rgba(168,85,247,0.2)' : 'rgba(0,0,0,0.1)'}` }}>
+                                            <div>
+                                                <h3 className="font-semibold" style={{ color: isDark ? '#fff' : '#0a0a0f' }}>{selectedTicket.subject}</h3>
+                                                <p className="text-sm" style={{ color: isDark ? '#8b8b9e' : '#64748b' }}>{selectedTicket.name} • {selectedTicket.email}</p>
+                                            </div>
+                                            <select value={selectedTicket.status} onChange={(e) => handleUpdateTicketStatus(selectedTicket.id, e.target.value)} className="px-3 py-1.5 rounded-lg text-sm" style={inputStyle}>
+                                                <option value="open">Open</option>
+                                                <option value="replied">Replied</option>
+                                                <option value="closed">Closed</option>
+                                            </select>
+                                        </div>
+                                        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                                            {selectedTicket.messages.map((msg, idx) => (
+                                                <div key={idx} className={`flex ${msg.sender === 'admin' ? 'justify-end' : 'justify-start'}`}>
+                                                    <div className="max-w-[80%] rounded-2xl px-4 py-3 relative group" style={{ backgroundColor: msg.sender === 'admin' ? '#a855f7' : (isDark ? '#1a1a2e' : '#f1f5f9'), color: msg.sender === 'admin' ? '#fff' : (isDark ? '#fff' : '#0a0a0f') }}>
+                                                        <p className="text-sm">{msg.message}</p>
+                                                        <div className="flex items-center gap-2 mt-1">
+                                                            {editingMessage === idx ? (
+                                                                <input type="datetime-local" defaultValue={new Date(msg.timestamp).toISOString().slice(0, 16)} onBlur={(e) => handleEditMessageTimestamp(idx, e.target.value)} className="text-xs px-2 py-1 rounded" style={{ backgroundColor: 'rgba(0,0,0,0.2)', color: 'inherit' }} autoFocus />
+                                                            ) : (
+                                                                <p className="text-xs opacity-70 cursor-pointer hover:underline" onClick={() => setEditingMessage(idx)}>{new Date(msg.timestamp).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</p>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                        {selectedTicket.status !== 'closed' && (
+                                            <form onSubmit={handleAdminReply} className="p-4 flex gap-3" style={{ borderTop: `1px solid ${isDark ? 'rgba(168,85,247,0.2)' : 'rgba(0,0,0,0.1)'}` }}>
+                                                <input type="text" value={adminReply} onChange={(e) => setAdminReply(e.target.value)} placeholder="Type your reply..." className="flex-1 px-4 py-3 rounded-xl" style={inputStyle} />
+                                                <button type="submit" className="px-4 py-3 rounded-xl text-white" style={{ background: 'linear-gradient(135deg, #a855f7, #22d3ee)' }}><Send size={20} /></button>
+                                            </form>
+                                        )}
+                                    </>
+                                ) : (
+                                    <div className="flex-1 flex items-center justify-center"><div className="text-center"><MessageCircle size={48} className="mx-auto mb-4 opacity-30" /><p style={{ color: isDark ? '#8b8b9e' : '#64748b' }}>Select a ticket to view</p></div></div>
+                                )}
+                            </div>
                         </div>
                     </div>
                 )}

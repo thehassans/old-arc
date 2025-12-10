@@ -5,6 +5,10 @@ const router = express.Router();
 let orders = [];
 let orderIdCounter = 1;
 
+// In-memory support tickets store
+let tickets = [];
+let ticketIdCounter = 1;
+
 // In-memory products store with default products
 let products = [
     { id: 1, title: 'Retro Console X', description: 'The ultimate retro gaming experience with 5000+ games.', price: 159.99, category: 'Consoles', image_url: 'https://images.unsplash.com/photo-1606144042614-b2417e99c4e3?auto=format&fit=crop&w=600&q=80', stock: 50, created_at: new Date().toISOString() },
@@ -539,6 +543,90 @@ router.delete('/products/:id', (req, res) => {
         res.json({ success: true });
     } catch (error) {
         console.error('Delete product error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// ==================== SUPPORT TICKETS ====================
+
+// Get tickets (by email for user, all for admin)
+router.get('/tickets', (req, res) => {
+    const { email } = req.query;
+    if (email) {
+        res.json(tickets.filter(t => t.email === email));
+    } else {
+        res.json(tickets);
+    }
+});
+
+// Create new ticket
+router.post('/tickets', (req, res) => {
+    try {
+        const { email, name, subject, message } = req.body;
+        const now = new Date().toISOString();
+        const ticket = {
+            id: ticketIdCounter++,
+            email,
+            name,
+            subject,
+            status: 'open',
+            messages: [{ message, sender: 'user', senderName: name, timestamp: now }],
+            created_at: now,
+            updated_at: now
+        };
+        tickets.unshift(ticket);
+        res.json({ success: true, ticket });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Add message to ticket
+router.post('/tickets/:ticketId/messages', (req, res) => {
+    try {
+        const { ticketId } = req.params;
+        const { message, sender, senderName, timestamp } = req.body;
+        const ticket = tickets.find(t => t.id === parseInt(ticketId));
+        if (!ticket) return res.status(404).json({ error: 'Ticket not found' });
+        
+        const msgTimestamp = timestamp || new Date().toISOString();
+        ticket.messages.push({ message, sender, senderName, timestamp: msgTimestamp });
+        ticket.updated_at = msgTimestamp;
+        if (sender === 'admin') ticket.status = 'replied';
+        
+        res.json({ success: true, ticket });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Update ticket (admin - status, edit messages)
+router.put('/tickets/:ticketId', (req, res) => {
+    try {
+        const { ticketId } = req.params;
+        const { status, messages } = req.body;
+        const ticket = tickets.find(t => t.id === parseInt(ticketId));
+        if (!ticket) return res.status(404).json({ error: 'Ticket not found' });
+        
+        if (status) ticket.status = status;
+        if (messages) ticket.messages = messages;
+        ticket.updated_at = new Date().toISOString();
+        
+        res.json({ success: true, ticket });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Delete ticket
+router.delete('/tickets/:ticketId', (req, res) => {
+    try {
+        const { ticketId } = req.params;
+        const idx = tickets.findIndex(t => t.id === parseInt(ticketId));
+        if (idx === -1) return res.status(404).json({ error: 'Ticket not found' });
+        tickets.splice(idx, 1);
+        res.json({ success: true });
+    } catch (error) {
         res.status(500).json({ error: error.message });
     }
 });

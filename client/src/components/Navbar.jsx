@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { ShoppingCart, Menu, X, Search, Sun, Moon, Gamepad2, User, LogOut, ChevronDown, Star, Package } from 'lucide-react';
+import { ShoppingCart, Menu, X, Search, Sun, Moon, Gamepad2, User, LogOut, ChevronDown, Star, Package, MessageCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCart } from '../context/CartContext';
 import { useTheme } from '../context/ThemeContext';
@@ -219,6 +219,17 @@ const Navbar = () => {
                                             >
                                                 <Star size={16} />
                                                 <span className="text-sm font-medium">Favourites</span>
+                                            </Link>
+                                            <Link
+                                                to="/support"
+                                                onClick={() => setUserMenuOpen(false)}
+                                                className="flex items-center gap-3 px-4 py-3 transition-colors"
+                                                style={{ color: '#22d3ee' }}
+                                                onMouseEnter={(e) => e.target.style.backgroundColor = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'}
+                                                onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
+                                            >
+                                                <MessageCircle size={16} />
+                                                <span className="text-sm font-medium">Support</span>
                                             </Link>
                                             <button
                                                 onClick={() => { logout(); setUserMenuOpen(false); }}
